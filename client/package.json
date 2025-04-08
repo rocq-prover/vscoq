@@ -22,7 +22,7 @@
     "Programming Languages"
   ],
   "keywords": [
-    "coq",
+    "rocq",
     "theorem prover",
     "proof assistant"
   ],
@@ -70,7 +70,7 @@
       {
         "language": "rocq",
         "scopeName": "source.rocq",
-        "path": "./syntax/coq.tmLanguage.json"
+        "path": "./syntax/rocq.tmLanguage.json"
       },
       {
         "language": "coq-project",
@@ -81,8 +81,8 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "vscoq-sidebar",
-          "title": "Coq Proof Assistant",
+          "id": "vsrocq-sidebar",
+          "title": "Rocq Proof Assistant",
           "icon": "./assets/icon-rocq-black.svg"
         }
       ]
@@ -93,13 +93,13 @@
           "type": "webview",
           "id": "vsrocq.search",
           "name": "Query",
-          "when": "resourceLangId == coq || editorLangId == coq"
+          "when": "resourceLangId == rocq || editorLangId == rocq"
         }
       ]
     },
     "configuration": [
       {
-        "title": "Coq configuration",
+        "title": "Rocq configuration",
         "type": "object",
         "properties": {
           "vsrocq-language-server.trace.server": {
@@ -146,7 +146,7 @@
             "scope": "window",
             "type": "boolean",
             "default": "true",
-            "description": "Should the goal view automatically display when navigating a coq document."
+            "description": "Should the goal view automatically display when navigating a rocq document."
           },
           "vsrocq.goals.display": {
             "scope": "window",
@@ -216,7 +216,7 @@
             "scope": "window",
             "type": "boolean",
             "default": true,
-            "description": "Move the editor's cursor position as Coq interactively steps forward/backward a command"
+            "description": "Move the editor's cursor position as Rocq interactively steps forward/backward a command"
           },
           "vsrocq.proof.delegation": {
             "scope": "window",
@@ -250,7 +250,7 @@
             "scope": "workspace",
             "type": "boolean",
             "default": true,
-            "description": "Toggles whether the Coq buttons are displayed in the editor actions tab menu."
+            "description": "Toggles whether the Rocq buttons are displayed in the editor actions tab menu."
           }
         }
       },
@@ -303,45 +303,45 @@
     "commands": [
       {
         "command": "extension.rocq.showManual",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Docs: Show manual"
       },
       {
         "command": "extension.rocq.walkthrough",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Docs: Show setup guide"
       },
       {
         "command": "extension.rocq.showSetup",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Troubleshooting: Show setup"
       },
       {
         "command": "extension.rocq.showLog",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Troubleshooting: Show Log Output"
       },
       {
         "command": "extension.rocq.reset",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Reset",
         "icon": "$(fold-up)"
       },
       {
         "command": "extension.rocq.query.search",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Search",
         "description": "Search for the term pattern at the cursor"
       },
       {
         "command": "extension.rocq.query.about",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "About",
         "description": "About the term pattern at the cursor"
       },
       {
         "command": "extension.rocq.query.check",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Check",
         "description": "Check the type of term at the cursor"
       },
@@ -349,70 +349,70 @@
         "command": "extension.rocq.query.locate",
         "title": "Locate",
         "description": "Locate the term at the cursor",
-        "category": "Coq"
+        "category": "Rocq"
       },
       {
         "command": "extension.rocq.query.print",
         "title": "Print",
         "description": "Print the definition of the term at the cursor",
-        "category": "Coq"
+        "category": "Rocq"
       },
       {
         "command": "extension.rocq.interpretToPoint",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Interpret to point",
-        "description": "Interprets the current coq file until the given point",
+        "description": "Interprets the current rocq file until the given point",
         "enablement": "config.vsrocq.proof.mode == 0",
         "icon": "$(arrow-right)"
       },
       {
         "command": "extension.rocq.interpretToEnd",
-        "category": "Coq",
+        "category": "Rocq",
         "title": "Interpret to end",
-        "description": "Interprets the current coq file until the end",
+        "description": "Interprets the current rocq file until the end",
         "enablement": "config.vsrocq.proof.mode == 0",
         "icon": "$(fold-down)"
       },
       {
         "command": "extension.rocq.stepForward",
         "title": "Step Forward",
-        "category": "Coq",
+        "category": "Rocq",
         "icon": "$(arrow-down)"
       },
       {
         "command": "extension.rocq.stepBackward",
         "title": "Step Backward",
-        "category": "Coq",
+        "category": "Rocq",
         "icon": "$(arrow-up)"
       },
       {
         "command": "extension.rocq.displayProofView",
         "title": "Display Proof View",
-        "category": "Coq",
+        "category": "Rocq",
         "icon": "$(open-preview)"
       },
       {
         "command": "extension.rocq.documentState",
         "title": "Troubleshooting: Get current document state",
-        "category": "Coq"
+        "category": "Rocq"
       },
       {
         "command": "extension.rocq.addQueryTab",
         "title": "Add Tab",
-        "category": "Coq",
+        "category": "Rocq",
         "icon": "$(add)"
       },
       {
         "command": "extension.rocq.collapseAllQueries",
         "title": "Collapse All",
-        "category": "Coq",
+        "category": "Rocq",
         "icon": "$(collapse-all)",
         "enablement": "vsrocq.hasSearchResults"
       },
       {
         "command": "extension.rocq.expandAllQueries",
         "title": "Expand All",
-        "category": "Coq",
+        "category": "Rocq",
         "icon": "$(expand-all)",
         "enablement": "vsrocq.hasSearchResults"
       }
@@ -420,96 +420,96 @@
     "menus": {
       "editor/title": [
         {
-          "when": "resourceLangId == coq && config.vsrocq.proof.display-buttons == true",
+          "when": "resourceLangId == rocq && config.vsrocq.proof.display-buttons == true",
           "command": "extension.rocq.interpretToPoint",
           "group": "navigation@3"
         },
         {
-          "when": "resourceLangId == coq && config.vsrocq.proof.display-buttons == true",
+          "when": "resourceLangId == rocq && config.vsrocq.proof.display-buttons == true",
           "command": "extension.rocq.stepForward",
           "group": "navigation@1"
         },
         {
-          "when": "resourceLangId == coq && config.vsrocq.proof.display-buttons == true",
+          "when": "resourceLangId == rocq && config.vsrocq.proof.display-buttons == true",
           "command": "extension.rocq.stepBackward",
           "group": "navigation@2"
         },
         {
-          "when": "resourceLangId == coq && config.vsrocq.proof.display-buttons == true",
+          "when": "resourceLangId == rocq && config.vsrocq.proof.display-buttons == true",
           "command": "extension.rocq.interpretToEnd",
           "group": "navigation@4"
         },
         {
-          "when": "resourceLangId == coq && config.vsrocq.proof.display-buttons == true",
+          "when": "resourceLangId == rocq && config.vsrocq.proof.display-buttons == true",
           "command": "extension.rocq.reset",
           "group": "navigation@5"
         },
         {
-          "when": "resourceLangId == coq && config.vsrocq.proof.display-buttons == true && !config.vsrocq.goals.auto",
+          "when": "resourceLangId == rocq && config.vsrocq.proof.display-buttons == true && !config.vsrocq.goals.auto",
           "command": "extension.rocq.displayProofView",
           "group": "navigation@0"
         },
         {
-          "when": "resourceLangId == coq && config.vsrocq.proof.display-buttons == true",
+          "when": "resourceLangId == rocq && config.vsrocq.proof.display-buttons == true",
           "submenu": "vsrocq.menu",
           "group": "navigation@0"
         }
       ],
       "vsrocq.menu": [
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.documentState",
           "group": "1_troubleshooting@1"
         },
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.showSetup",
           "group": "1_troubleshooting@2"
         },
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.showLog",
           "group": "1_troubleshooting@2"
         },
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "submenu": "vsrocq.menu.doc",
           "group": "2_documentation@0"
         }
       ],
       "vsrocq.menu.doc": [
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.walkthrough"
         },
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.showManual"
         }
       ],
       "editor/context": [
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.interpretToPoint",
-          "group": "navigation@coq"
+          "group": "navigation@rocq"
         },
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.query.check",
           "group": "queries"
         },
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.query.print",
           "group": "queries"
         },
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.query.search",
           "group": "queries"
         },
         {
-          "when": "resourceLangId == coq",
+          "when": "resourceLangId == rocq",
           "command": "extension.rocq.query.locate",
           "group": "queries"
         }
@@ -540,7 +540,7 @@
           "dark": "./assets/icon-rocq-mini-dark.svg",
           "light": "./assets/icon-rocq-mini-light.svg"
         },
-        "label": "Coq"
+        "label": "Rocq"
       },
       {
         "id": "vsrocq.menu.doc",
@@ -552,79 +552,79 @@
         "key": "alt+down",
         "mac": "ctrl+alt+down",
         "command": "extension.rocq.stepForward",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       },
       {
         "key": "alt+down",
         "mac": "ctrl+alt+down",
         "command": "extension.rocq.stepForward",
-        "when": "resourceScheme==coq-view"
+        "when": "resourceScheme==rocq-view"
       },
       {
         "key": "alt+up",
         "mac": "ctrl+alt+up",
         "command": "extension.rocq.stepBackward",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       },
       {
         "key": "alt+up",
         "mac": "ctrl+alt+up",
         "command": "extension.rocq.stepBackward",
-        "when": "resourceScheme==coq-view"
+        "when": "resourceScheme==rocq-view"
       },
       {
         "key": "alt+right",
         "mac": "ctrl+alt+right",
         "command": "extension.rocq.interpretToPoint",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       },
       {
         "key": "alt+right",
         "mac": "ctrl+alt+right",
         "command": "extension.rocq.interpretToPoint",
-        "when": "resourceScheme==coq-view"
+        "when": "resourceScheme==rocq-view"
       },
       {
         "key": "alt+end",
         "mac": "ctrl+alt+end",
         "command": "extension.rocq.interpretToEnd",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       },
       {
         "key": "alt+end",
         "mac": "ctrl+alt+end",
         "command": "extension.rocq.interpretToEnd",
-        "when": "resourceScheme==coq-view"
+        "when": "resourceScheme==rocq-view"
       },
       {
         "key": "ctrl+alt+a",
         "mac": "cmd+ctrl+a",
         "command": "extension.rocq.query.about",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       },
       {
         "key": "ctrl+alt+k",
         "mac": "cmd+ctrl+k",
         "command": "extension.rocq.query.search",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       },
       {
         "key": "ctrl+alt+c",
         "mac": "cmd+ctrl+c",
         "command": "extension.rocq.query.check",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       },
       {
         "key": "ctrl+alt+l",
         "mac": "cmd+ctrl+l",
         "command": "extension.rocq.query.locate",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       },
       {
         "key": "ctrl+alt+p",
         "mac": "cmd+ctrl+p",
         "command": "extension.rocq.query.print",
-        "when": "editorTextFocus && editorLangId == coq"
+        "when": "editorTextFocus && editorLangId == rocq"
       }
     ],
     "colors": [
@@ -902,21 +902,21 @@
     "walkthroughs": [
       {
         "id": "rocq.welcome",
-        "title": "Coq Setup",
-        "description": "Getting started with Coq",
+        "title": "Rocq Setup",
+        "description": "Getting started with Rocq",
         "steps": [
           {
             "id": "rocq.welcome.openHelpPage",
             "title": "Re-open the setup page",
-            "description": "This page is accessible at any moment by opening an empty file, clicking on the Coq menu and selecting ``Documentation > Docs: Show Setup Guide`` from the drop down menu.",
+            "description": "This page is accessible at any moment by opening an empty file, clicking on the Rocq menu and selecting ``Documentation > Docs: Show Setup Guide`` from the drop down menu.",
             "media": {
               "image": "./media/open_walkthrough.png",
-              "altText": "Click on the Coq symbol and go to ```Docs: Show Setup Guide``` to re-open this walkthrough."
+              "altText": "Click on the Rocq symbol and go to ```Docs: Show Setup Guide``` to re-open this walkthrough."
             }
           },
           {
             "id": "rocq.welcome.books",
-            "title": "Ressources to get started in the Coq world",
+            "title": "Ressources to get started in the Rocq world",
             "description": "You can find helpful books, documentations, and tutorials on this page",
             "media": {
               "markdown": "./media/books.md"
@@ -925,7 +925,7 @@
           {
             "id": "rocq.welcome.install",
             "title": "Install dependencies",
-            "description": "How to install Coq, setup vsrocq and its dependencies",
+            "description": "How to install Rocq, setup vsrocq and its dependencies",
             "media": {
               "markdown": "./media/install.md"
             }
@@ -933,7 +933,7 @@
           {
             "id": "rocq.welcome.troubleshooting",
             "title": "Getting help",
-            "description": "If you have any questions or are having problem with any of the previous steps, please head over to the [Coq zulip chat](https://rocq.zulipchat.com/) so we can help you.",
+            "description": "If you have any questions or are having problem with any of the previous steps, please head over to the [Rocq zulip chat](https://rocq.zulipchat.com/) so we can help you.",
             "media": {
               "markdown": "./media/troubleshooting.md"
             }
