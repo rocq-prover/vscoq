@@ -149,7 +149,7 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
             case "ready": 
                 this.dequeueQueries();
 
-            case "coqQuery":
+            case "rocqQuery":
 
                 if(version && uri && position) {
                     

@@ -32,11 +32,11 @@ export default class VsCoqToolchainManager implements Disposable {
     }
 
     public intialize() : Promise<void> {
-        Client.writeToVscoq2Channel("[Toolchain] Searching for vscoqtop");
+        Client.writeToVsrocqChannel("[Toolchain] Searching for vscoqtop");
         return new Promise((resolve, reject: ((reason: ToolchainError) => void)) => {
             this.vscoqtopPath().then(vscoqtopPath => {
                 if(vscoqtopPath) {
-                    Client.writeToVscoq2Channel("[Toolchain] Found path: " + vscoqtopPath);
+                    Client.writeToVsrocqChannel("[Toolchain] Found path: " + vscoqtopPath);
                     this._vscoqtopPath = vscoqtopPath;
                     this.vscoqtopWhere().then(
                         () => {
@@ -48,7 +48,7 @@ export default class VsCoqToolchainManager implements Disposable {
                     );
 
                 } else {
-                    Client.writeToVscoq2Channel("[Toolchain] Did not find vscoqtop path");
+                    Client.writeToVsrocqChannel("[Toolchain] Did not find vscoqtop path");
                     reject({
                         status: ToolChainErrorCode.notFound, 
                         message: "VsCoq couldn't launch because no language server was found. You can install the language server (requires Coq 8.18 or higher) or use VsCoq Legacy."

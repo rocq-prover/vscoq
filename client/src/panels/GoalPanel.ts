@@ -120,7 +120,7 @@ export default class GoalPanel {
   public static toggleGoalDisplaySettings() {
 
     if(GoalPanel.currentPanel) {
-        Client.writeToVscoq2Channel("[GoalPanel] Toggling display settings");
+        Client.writeToVsrocqChannel("[GoalPanel] Toggling display settings");
         GoalPanel.currentPanel._updateDisplaySettings(GoalPanel.currentPanel._panel.webview);
     }
 
@@ -129,7 +129,7 @@ export default class GoalPanel {
   public static changeGoalDisplayDepth() {
 
     if(GoalPanel.currentPanel) {
-        Client.writeToVscoq2Channel("[GoalPanel] Changing goal depth");
+        Client.writeToVsrocqChannel("[GoalPanel] Changing goal depth");
         GoalPanel.currentPanel._updateGoalDepth(GoalPanel.currentPanel._panel.webview);
     }
 
@@ -142,7 +142,7 @@ export default class GoalPanel {
   public static resetGoalPanel() {
 
     if(GoalPanel.currentPanel) {
-        Client.writeToVscoq2Channel("[GoalPanel] Resetting goal panel");
+        Client.writeToVsrocqChannel("[GoalPanel] Resetting goal panel");
         GoalPanel.currentPanel._reset();
     }
 
@@ -154,13 +154,13 @@ export default class GoalPanel {
   // /////////////////////////////////////////////////////////////////////////////
   public static proofViewNotification(extensionUri: Uri, editor: TextEditor, pv: ProofViewNotification, autoDisplay: boolean) {
     
-    Client.writeToVscoq2Channel("[GoalPanel] Received proofview notification");
+    Client.writeToVsrocqChannel("[GoalPanel] Received proofview notification");
 
     if(!GoalPanel.currentPanel) {
         //If autoDisplay is set then render the proofview immediately
         if(autoDisplay) {
             GoalPanel.render(editor, extensionUri, (goalPanel) => {
-                Client.writeToVscoq2Channel("[GoalPanel] Created new goal panel");
+                Client.writeToVsrocqChannel("[GoalPanel] Created new goal panel");
                 goalPanel._handleProofViewResponseOrNotification(pv);
             });
         }
@@ -170,7 +170,7 @@ export default class GoalPanel {
         }
     }
     else {
-        Client.writeToVscoq2Channel("[GoalPanel] Rendered in current panel");
+        Client.writeToVsrocqChannel("[GoalPanel] Rendered in current panel");
         GoalPanel.currentPanel._handleProofViewResponseOrNotification(pv);
     }
     

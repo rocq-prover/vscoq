@@ -57,7 +57,7 @@ export function activate(context: ExtensionContext) {
         const textDocument = TextDocumentIdentifier.create(uri.toString());
         const params: DocumentProofsRequest = {textDocument};
         const req = new RequestType<DocumentProofsRequest, DocumentProofsResponse, void>("vscoq/documentProofs");
-        Client.writeToVscoq2Channel("Getting proofs for: " + uri.toString());
+        Client.writeToVsrocqChannel("Getting proofs for: " + uri.toString());
         return client.sendRequest(req, params);
     };
 
@@ -189,7 +189,7 @@ export function activate(context: ExtensionContext) {
             const textDocument = TextDocumentIdentifier.create(uri.toString());
             const params: ResetCoqRequest = {textDocument};
             const req = new RequestType<ResetCoqRequest, ResetCoqResponse, void>("vscoq/resetCoq");
-            Client.writeToVscoq2Channel(uri.toString());
+            Client.writeToVsrocqChannel(uri.toString());
             client.sendRequest(req, params).then(
                 (res) => {
                     GoalPanel.resetGoalPanel();
