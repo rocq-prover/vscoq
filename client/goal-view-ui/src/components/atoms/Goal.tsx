@@ -29,7 +29,7 @@ const goal : FunctionComponent<GoalProps> = (props) => {
         >
             <PpDisplay 
                 pp={goal}
-                coqCss={classes}
+                rocqCss={classes}
                 maxDepth={maxDepth}
             />
         </div>
