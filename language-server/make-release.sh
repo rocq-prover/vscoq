@@ -15,7 +15,7 @@ function mkp {
   sed -i '/version: "dev"/d' $repo/packages/$P/$P.$V/opam
 }
 
-mkp vscoq-language-server 0.1          ./
+mkp vsrocq-language-server 0.1          ./
 
 cd $repo
 opam admin lint

@@ -1,6 +1,6 @@
 (alias
    (name default)
-    (deps vscoq-language-server.install))
+    (deps vsrocq-language-server.install))
 (env
  (dev
   (flags :standard -w -9 -warn-error -A))

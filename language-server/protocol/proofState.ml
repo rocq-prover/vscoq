@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -72,8 +72,8 @@ let mk_goal env sigma g =
       (Termops.compact_named_context sigma (EConstr.named_context env)) ~init:(min_env,[]) in
   {
     id;
-    hypotheses = List.rev_map pp_of_coqpp hyps;
-    goal = pp_of_coqpp ccl;
+    hypotheses = List.rev_map pp_of_rocqpp hyps;
+    goal = pp_of_rocqpp ccl;
   }
 
 let mk_goal_diff diff_goal_map env sigma g =
@@ -82,8 +82,8 @@ let mk_goal_diff diff_goal_map env sigma g =
   let (hyps, ccl) = Proof_diffs.diff_goal ?og_s (Proof_diffs.make_goal env sigma g) in
   {
     id;
-    hypotheses = List.rev_map pp_of_coqpp hyps;
-    goal = pp_of_coqpp ccl;
+    hypotheses = List.rev_map pp_of_rocqpp hyps;
+    goal = pp_of_rocqpp ccl;
   }
 
 let proof_of_state st =
@@ -92,7 +92,7 @@ let proof_of_state st =
   | Some lemmas ->
     Some (lemmas |> Vernacstate.LemmaStack.with_top ~f:Declare.Proof.get)
 
-(* The Coq diff API is so poorly designed that we have to imperatively set a
+(* The Rocq diff API is so poorly designed that we have to imperatively set a
    string option to control the behavior of `mk_goal_diff`. We do the required
    plumbing here. *)
 let string_of_diff_mode = function

@@ -1,0 +1,7 @@
+(executable
+ (name vsrocqtop)
+ (public_name vsrocqtop)
+ (flags -linkall)
+ (package vsrocq-language-server)
+ (preprocess (pps ppx_optcomp -- -cookie "ppx_optcomp.env=env ~rocq:(Defined \"%{rocq:version.major}.%{rocq:version.minor}\")"))
+ (libraries rocq-core.sysinit rocq-core.tactics sel yojson dm lsp))
