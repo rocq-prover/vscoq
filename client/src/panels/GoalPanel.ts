@@ -69,9 +69,9 @@ export default class GoalPanel {
       // If a webview panel does not already exist create and show a new one
       const panel = window.createWebviewPanel(
         // Panel view type
-        "coq",
+        "rocq",
         // Panel title
-        "Coq Goals",
+        "Rocq Goals",
         // The editor column the panel should be displayed in
         {preserveFocus: true, viewColumn: column },
         // Extra panel configurations
@@ -230,12 +230,12 @@ export default class GoalPanel {
 
 
   private _updateDisplaySettings(webview: Webview) {
-    const config = workspace.getConfiguration('vscoq.goals');
+    const config = workspace.getConfiguration('vsrocq.goals');
     webview.postMessage({ "command": "updateDisplaySettings", "text": config.display });
   };
 
   private _updateGoalDepth(webview: Webview) {
-    const config = workspace.getConfiguration('vscoq.goals');
+    const config = workspace.getConfiguration('vsrocq.goals');
     webview.postMessage({ "command": "updateGoalDepth", "text": config.maxDepth });
   };
 
@@ -253,7 +253,7 @@ export default class GoalPanel {
 
         switch (command) {
             case 'openGoalSettings':
-                commands.executeCommand('workbench.action.openSettings', 'vscoq.goals');
+                commands.executeCommand('workbench.action.openSettings', 'vsrocq.goals');
             // Add more switch case statements here as more webview message commands
             // are created within the webview context (i.e. inside media/main.js)
         }

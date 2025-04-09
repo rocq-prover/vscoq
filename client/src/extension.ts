@@ -21,20 +21,20 @@ import {
 
 import Client from './client';
 import { updateServerOnConfigurationChange } from './configuration';
-import { checkVersion, getCoqdocUrl } from './utilities/versioning';
+import { checkVersion, getRocqdocUrl } from './utilities/versioning';
 import {initializeDecorations} from './Decorations';
 import GoalPanel from './panels/GoalPanel';
 import SearchViewProvider from './panels/SearchViewProvider';
 import {
-    CoqLogMessage,
+    RocqLogMessage,
     DocumentProofsRequest,
     DocumentProofsResponse,
     ErrorAlertNotification,
     MoveCursorNotification, 
     ProofViewNotification, 
-    ResetCoqRequest, 
-    ResetCoqResponse, 
-    SearchCoqResult
+    ResetRocqRequest, 
+    ResetRocqResponse, 
+    SearchRocqResult
 } from './protocol/types';
 import { 
     sendInterpretToPoint,
@@ -42,13 +42,9 @@ import {
     sendStepForward,
     sendStepBackward
 } from './manualChecking';
-import { 
-    makeVersionedDocumentId,
-    isMouseOrKeyboardEvent
-} from './utilities/utils';
 import { DocumentStateViewProvider } from './panels/DocumentStateViewProvider';
-import VsCoqToolchainManager, {ToolchainError, ToolChainErrorCode} from './utilities/toolchain';
-import { QUICKFIX_COMMAND, CoqWarningQuickFix } from './QuickFixProvider';
+import VsRocqToolchainManager, {ToolchainError, ToolChainErrorCode} from './utilities/toolchain';
+import { QUICKFIX_COMMAND, RocqWarningQuickFix } from './QuickFixProvider';
 
 let client: Client;
 
@@ -56,40 +52,40 @@ export function activate(context: ExtensionContext) {
     const getDocumentProofs = (uri: Uri) => {
         const textDocument = TextDocumentIdentifier.create(uri.toString());
         const params: DocumentProofsRequest = {textDocument};
-        const req = new RequestType<DocumentProofsRequest, DocumentProofsResponse, void>("vscoq/documentProofs");
+        const req = new RequestType<DocumentProofsRequest, DocumentProofsResponse, void>("vsrocq/documentProofs");
         Client.writeToVsrocqChannel("Getting proofs for: " + uri.toString());
         return client.sendRequest(req, params);
     };
 
-    const coqTM = new VsCoqToolchainManager();
-    coqTM.intialize().then(
+    const rocqTM = new VsRocqToolchainManager();
+    rocqTM.intialize().then(
         () => {
-            const serverOptions = coqTM.getServerConfiguration(); 
+            const serverOptions = rocqTM.getServerConfiguration(); 
             intializeExtension(serverOptions);
         }, 
         (err: ToolchainError) => {
             switch(err.status) {
 
                 case ToolChainErrorCode.notFound: 
-                    window.showErrorMessage("No language server found", {modal: true, detail: err.message}, {title: "Install the VsCoq language server (Recommended for Coq >= 8.18)", id: 0}, {title: "Install VsCoq Legacy (Required for Coq <= 8.17)", id: 1})
+                    window.showErrorMessage("No language server found", {modal: true, detail: err.message}, {title: "Install the VsRocq language server (Recommended for Rocq >= 8.18)", id: 0}, {title: "Install VsRocq Legacy (Required for Rocq <= 8.17)", id: 1})
                     .then(act => {
                         if(act?.id === 0) {
-                            commands.executeCommand("vscode.open", Uri.parse('https://github.com/coq-community/vscoq#installing-the-language-server'));
+                            commands.executeCommand("vscode.open", Uri.parse('https://github.com/rocq-community/vsrocq#installing-the-language-server'));
                         }
                         if (act?.id === 1) {
-                            commands.executeCommand("extension.open", "coq-community.vscoq1");
+                            commands.executeCommand("extension.open", "rocq-community.vsrocq1");
                         }
                     });
                     break;
 
                 case ToolChainErrorCode.launchError: 
-                    window.showErrorMessage("Could not launch language server", {modal: true, detail: err.message}, {title: "Get Coq", id: 0}, {title: "Install VsCoq Legacy (Required for Coq <= 8.17)", id: 1})
+                    window.showErrorMessage("Could not launch language server", {modal: true, detail: err.message}, {title: "Get Rocq", id: 0}, {title: "Install VsRocq Legacy (Required for Rocq <= 8.17)", id: 1})
                     .then(act => {
                         if(act?.id === 0) {
-                            commands.executeCommand("vscode.open", Uri.parse('https://coq.inria.fr/download'));
+                            commands.executeCommand("vscode.open", Uri.parse('https://rocq.inria.fr/download'));
                         }
                         if (act?.id === 1) {
-                            commands.executeCommand("extension.open", "coq-community.vscoq1");
+                            commands.executeCommand("extension.open", "rocq-community.vsrocq1");
                         }
                         
                     });
@@ -98,18 +94,18 @@ export function activate(context: ExtensionContext) {
         }
     );
     
-    // Detect if vscoq1 is installed and active
-    const vscoq1 = extensions.getExtension("coq-community.vscoq1");
-    if (vscoq1) {
-        if (vscoq1.isActive) {
-            const message = "VsCoq2 is incompatible with VsCoq1. it is recommended that you disable one of them.";
-            window.showErrorMessage(message, { title: "Disable VsCoq1", id: 0 }, { title: "Disable VsCoq2", id: 1 })
+    // Detect if vsrocq1 is installed and active
+    const vsrocq1 = extensions.getExtension("rocq-community.vsrocq1");
+    if (vsrocq1) {
+        if (vsrocq1.isActive) {
+            const message = "VsRocq2 is incompatible with VsRocq1. it is recommended that you disable one of them.";
+            window.showErrorMessage(message, { title: "Disable VsRocq1", id: 0 }, { title: "Disable VsRocq2", id: 1 })
                 .then(act => {
                     if (act?.id === 0) {
-                        commands.executeCommand("extension.open", "coq-community.vscoq1");
+                        commands.executeCommand("extension.open", "rocq-community.vsrocq1");
                     }
                     if (act?.id === 1) {
-                        commands.executeCommand("extension.open", "maximedenes.vscoq");
+                        commands.executeCommand("extension.open", "maximedenes.vsrocq");
                     }
 
                 });
@@ -119,31 +115,31 @@ export function activate(context: ExtensionContext) {
     const getConfigString = (serverInfo : any) => {
         return (
 
-    `**Coq Installation**
+    `**Rocq Installation**
     
-    ${coqTM.getversionFullOutput()}
+    ${rocqTM.getversionFullOutput()}
     
-    Path: \`${coqTM.getCoqPath()}\`
+    Path: \`${rocqTM.getRocqPath()}\`
     ---
     
-    **vscoqtop** ${serverInfo?.version}
+    **vsrocqtop** ${serverInfo?.version}
     
-    Path: \`${coqTM.getVsCoqTopPath()}\`
+    Path: \`${rocqTM.getVsRocqTopPath()}\`
     `
 
         );
 
     };
 
-    function registerVscoqTextCommand(command: string, callback: (textEditor: TextEditor, ...args: any[]) => void) {
-        context.subscriptions.push(commands.registerTextEditorCommand('extension.coq.' + command, callback));
+    function registerVsrocqTextCommand(command: string, callback: (textEditor: TextEditor, ...args: any[]) => void) {
+        context.subscriptions.push(commands.registerTextEditorCommand('extension.rocq.' + command, callback));
     };
     
     function intializeExtension(serverOptions: ServerOptions) {
-        const config = workspace.getConfiguration('vscoq');
+        const config = workspace.getConfiguration('vsrocq');
 
         let clientOptions: LanguageClientOptions = {
-            documentSelector: [{ scheme: 'file', language: 'coq' }],
+            documentSelector: [{ scheme: 'file', language: 'rocq' }],
             initializationOptions: config
         };
 
@@ -158,9 +154,9 @@ export function activate(context: ExtensionContext) {
         context.subscriptions.push(window.registerWebviewViewProvider(SearchViewProvider.viewType, searchProvider));
 
         const documentStateProvider = new DocumentStateViewProvider(client); 
-        context.subscriptions.push(workspace.registerTextDocumentContentProvider("vscoq-document-state", documentStateProvider));
+        context.subscriptions.push(workspace.registerTextDocumentContentProvider("vsrocq-document-state", documentStateProvider));
 
-        //status bar item for showing coq version and language server version
+        //status bar item for showing rocq version and language server version
         const statusBar: StatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 1000);
         context.subscriptions.push(statusBar);
 
@@ -171,7 +167,7 @@ export function activate(context: ExtensionContext) {
             //either use the user selection or if no selection than infer the word under the cursor
             const wordAtCurorRange = (end.character !== start.character) ? selection : editor.document.getWordRangeAtPosition(end);
             //focus on the query panel
-            commands.executeCommand('vscoq.search.focus');
+            commands.executeCommand('vsrocq.search.focus');
             //open a prompt with the given word as default
             window.showInputBox({
                 prompt: type.charAt(0).toUpperCase() + type.slice(1),
@@ -184,11 +180,11 @@ export function activate(context: ExtensionContext) {
             });
         };
 
-        registerVscoqTextCommand('reset', (editor) => {
+        registerVsrocqTextCommand('reset', (editor) => {
             const uri = editor.document.uri;
             const textDocument = TextDocumentIdentifier.create(uri.toString());
-            const params: ResetCoqRequest = {textDocument};
-            const req = new RequestType<ResetCoqRequest, ResetCoqResponse, void>("vscoq/resetCoq");
+            const params: ResetRocqRequest = {textDocument};
+            const req = new RequestType<ResetRocqRequest, ResetRocqResponse, void>("vsrocq/resetRocq");
             Client.writeToVsrocqChannel(uri.toString());
             client.sendRequest(req, params).then(
                 (res) => {
@@ -199,19 +195,19 @@ export function activate(context: ExtensionContext) {
                 }
             );
         });
-        registerVscoqTextCommand('query.search', (editor) => launchQuery(editor, "search"));
-        registerVscoqTextCommand('query.about', (editor) => launchQuery(editor, "about"));
-        registerVscoqTextCommand('query.check', (editor) => launchQuery(editor, "check"));
-        registerVscoqTextCommand('query.locate', (editor) => launchQuery(editor, "locate"));
-        registerVscoqTextCommand('query.print', (editor) => launchQuery(editor, "print"));
-        registerVscoqTextCommand('addQueryTab', () => searchProvider.addTab());
-        registerVscoqTextCommand('collapseAllQueries', () => searchProvider.collapseAll());
-        registerVscoqTextCommand('expandAllQueries', () => searchProvider.expandAll());
-        registerVscoqTextCommand('interpretToPoint', (editor) => sendInterpretToPoint(editor, client));
-        registerVscoqTextCommand('interpretToEnd', (editor) => sendInterpretToEnd(editor, client));
-        registerVscoqTextCommand('stepForward', (editor) => sendStepForward(editor, client));
-        registerVscoqTextCommand('stepBackward', (editor) => sendStepBackward(editor, client));
-        registerVscoqTextCommand('documentState', async (editor) => {
+        registerVsrocqTextCommand('query.search', (editor) => launchQuery(editor, "search"));
+        registerVsrocqTextCommand('query.about', (editor) => launchQuery(editor, "about"));
+        registerVsrocqTextCommand('query.check', (editor) => launchQuery(editor, "check"));
+        registerVsrocqTextCommand('query.locate', (editor) => launchQuery(editor, "locate"));
+        registerVsrocqTextCommand('query.print', (editor) => launchQuery(editor, "print"));
+        registerVsrocqTextCommand('addQueryTab', () => searchProvider.addTab());
+        registerVsrocqTextCommand('collapseAllQueries', () => searchProvider.collapseAll());
+        registerVsrocqTextCommand('expandAllQueries', () => searchProvider.expandAll());
+        registerVsrocqTextCommand('interpretToPoint', (editor) => sendInterpretToPoint(editor, client));
+        registerVsrocqTextCommand('interpretToEnd', (editor) => sendInterpretToEnd(editor, client));
+        registerVsrocqTextCommand('stepForward', (editor) => sendStepForward(editor, client));
+        registerVsrocqTextCommand('stepBackward', (editor) => sendStepBackward(editor, client));
+        registerVsrocqTextCommand('documentState', async (editor) => {
                 
             documentStateProvider.setDocumentUri(editor.document.uri);
 
@@ -225,10 +221,10 @@ export function activate(context: ExtensionContext) {
             }); 
             
         });
-        registerVscoqTextCommand('showLog', () => {
+        registerVsrocqTextCommand('showLog', () => {
             Client.showLog();
         });
-        registerVscoqTextCommand('showSetup', () => {
+        registerVsrocqTextCommand('showSetup', () => {
             const serverInfo = client.initializeResult!.serverInfo;
             const configString = getConfigString(serverInfo);
             window.showInformationMessage(configString, {modal: true}, { title: "Copy to clipboard", id: 0 })
@@ -238,19 +234,19 @@ export function activate(context: ExtensionContext) {
                     }
                 });
         });
-        registerVscoqTextCommand('walkthrough', () => {
-            commands.executeCommand('workbench.action.openWalkthrough', 'maximedenes.vscoq#coq.welcome', false); 
+        registerVsrocqTextCommand('walkthrough', () => {
+            commands.executeCommand('workbench.action.openWalkthrough', 'maximedenes.vsrocq#rocq.welcome', false); 
         });
-        registerVscoqTextCommand('showManual', () => {
-            const url = getCoqdocUrl(coqTM.getCoqVersion());
+        registerVsrocqTextCommand('showManual', () => {
+            const url = getRocqdocUrl(rocqTM.getRocqVersion());
             commands.executeCommand('simpleBrowser.show', url); 
         });
-        registerVscoqTextCommand('displayProofView', () => {
+        registerVsrocqTextCommand('displayProofView', () => {
             const editor = window.activeTextEditor ? window.activeTextEditor : window.visibleTextEditors[0];
             GoalPanel.displayProofView(context.extensionUri, editor);
         });
             
-        client.onNotification("vscoq/updateHighlights", (notification) => {
+        client.onNotification("vsrocq/updateHighlights", (notification) => {
         
             client.saveHighlights(
                 notification.uri,
@@ -262,13 +258,13 @@ export function activate(context: ExtensionContext) {
             client.updateHightlights();
         });
 
-        client.onNotification("vscoq/moveCursor", (notification: MoveCursorNotification) => {
+        client.onNotification("vsrocq/moveCursor", (notification: MoveCursorNotification) => {
             const {uri, range} = notification;
             const editors = window.visibleTextEditors.filter(editor => {
                 return editor.document.uri.toString() === uri.toString();
             });
-            if(workspace.getConfiguration('vscoq.proof.cursor').sticky === true ||
-            workspace.getConfiguration('vscoq.proof').mode === 1) {
+            if(workspace.getConfiguration('vsrocq.proof.cursor').sticky === true ||
+            workspace.getConfiguration('vsrocq.proof').mode === 1) {
                 editors.map(editor => {
                     editor.selections = [new Selection(range.end, range.end)];
                     editor.revealRange(range, TextEditorRevealType.Default);
@@ -276,25 +272,25 @@ export function activate(context: ExtensionContext) {
             }
         });
 
-        client.onNotification("vscoq/searchResult", (searchResult: SearchCoqResult) => {
+        client.onNotification("vsrocq/searchResult", (searchResult: SearchRocqResult) => {
             searchProvider.renderSearchResult(searchResult);
         });
 
-        client.onNotification("vscoq/proofView", (proofView: ProofViewNotification) => {
+        client.onNotification("vsrocq/proofView", (proofView: ProofViewNotification) => {
             const editor = window.activeTextEditor ? window.activeTextEditor : window.visibleTextEditors[0];
-            const autoDisplay = workspace.getConfiguration('vscoq.goals').auto;
+            const autoDisplay = workspace.getConfiguration('vsrocq.goals').auto;
             GoalPanel.proofViewNotification(context.extensionUri, editor, proofView, autoDisplay);
         });
 
-        client.onNotification("vscoq/blockOnError", (notification: ErrorAlertNotification) => {
+        client.onNotification("vsrocq/blockOnError", (notification: ErrorAlertNotification) => {
             const {uri, range} = notification;
             client.createErrorAnimation(uri.toString(), [range]);
         });
 
-        client.onNotification("vscoq/debugMessage", (coqMessage: CoqLogMessage) => {
-            const {message} = coqMessage;
+        client.onNotification("vsrocq/debugMessage", (rocqMessage: RocqLogMessage) => {
+            const {message} = rocqMessage;
             const messageString = `${message}`;
-            Client.writeCoqMessageLog(messageString);
+            Client.writeRocqMessageLog(messageString);
         });
 
         context.subscriptions.push(commands.registerCommand(QUICKFIX_COMMAND, (data) => {
@@ -303,8 +299,8 @@ export function activate(context: ExtensionContext) {
             edit.replace(document.uri, range, text);
             workspace.applyEdit(edit);
         }));
-        languages.registerCodeActionsProvider('coq', new CoqWarningQuickFix(), {
-            providedCodeActionKinds: CoqWarningQuickFix.providedCodeActionKinds
+        languages.registerCodeActionsProvider('rocq', new RocqWarningQuickFix(), {
+            providedCodeActionKinds: RocqWarningQuickFix.providedCodeActionKinds
         });
 
         client.start()
@@ -314,19 +310,19 @@ export function activate(context: ExtensionContext) {
             const serverInfo = client.initializeResult!.serverInfo;
             const configString = new MarkdownString(
                 
-`**Coq Installation**
+`**Rocq Installation**
 
-${coqTM.getversionFullOutput()}
+${rocqTM.getversionFullOutput()}
 
-Path: \`${coqTM.getCoqPath()}\`
+Path: \`${rocqTM.getRocqPath()}\`
 ---
 
-**vscoqtop** ${serverInfo?.version}
+**vsrocqtop** ${serverInfo?.version}
 
-Path: \`${coqTM.getVsCoqTopPath()}\`
+Path: \`${rocqTM.getVsRocqTopPath()}\`
 `
                             );
-            statusBar.text = `${serverInfo?.name} ${serverInfo?.version}, coq ${coqTM.getCoqVersion()}`;
+            statusBar.text = `${serverInfo?.name} ${serverInfo?.version}, rocq ${rocqTM.getRocqVersion()}`;
             statusBar.tooltip = configString;
             statusBar.show();
 
@@ -336,24 +332,24 @@ Path: \`${coqTM.getVsCoqTopPath()}\`
             context.subscriptions.push(workspace.onDidChangeConfiguration(event => {
                 updateServerOnConfigurationChange(event, context, client);
 
-                if(event.affectsConfiguration('vscoq.proof.mode')) {
+                if(event.affectsConfiguration('vsrocq.proof.mode')) {
                     client.resetHighlights();
                     client.updateHightlights();
                 }
 
-                if(event.affectsConfiguration('vscoq.goals.display')) {
+                if(event.affectsConfiguration('vsrocq.goals.display')) {
                     GoalPanel.toggleGoalDisplaySettings();
                 }
 
-                if(event.affectsConfiguration('vscoq.goals.maxDepth')) {
+                if(event.affectsConfiguration('vsrocq.goals.maxDepth')) {
                     GoalPanel.changeGoalDisplayDepth();
                 }
             }));
 
             let goalsHook = window.onDidChangeTextEditorSelection(
                 (evt: TextEditorSelectionChangeEvent) => {                    
-                    if (evt.textEditor.document.languageId === "coq"
-                        && workspace.getConfiguration('vscoq.proof').mode === 1)
+                    if (evt.textEditor.document.languageId === "rocq"
+                        && workspace.getConfiguration('vsrocq.proof').mode === 1)
                     {
                         sendInterpretToPoint(evt.textEditor, client);
                     }

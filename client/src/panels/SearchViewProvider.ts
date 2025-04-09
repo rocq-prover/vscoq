@@ -2,18 +2,18 @@ import * as vscode from 'vscode';
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import { 
-    AboutCoqRequest, 
-    AboutCoqResponse, 
-    SearchCoqHandshake, 
-    SearchCoqRequest, 
-    SearchCoqResult,
+    AboutRocqRequest, 
+    AboutRocqResponse, 
+    SearchRocqHandshake, 
+    SearchRocqRequest, 
+    SearchRocqResult,
     QueryError,
-    CheckCoqRequest,
-    CheckCoqResponse,
-    LocateCoqRequest,
-    LocateCoqResponse,
-    PrintCoqRequest,
-    PrintCoqResponse
+    CheckRocqRequest,
+    CheckRocqResponse,
+    LocateRocqRequest,
+    LocateRocqResponse,
+    PrintRocqRequest,
+    PrintRocqResponse
 } from '../protocol/types';
 import {
     RequestType,
@@ -29,7 +29,7 @@ interface Query {
         
 export default class SearchViewProvider implements vscode.WebviewViewProvider {
 
-    public static readonly viewType = 'vscoq.search'; 
+    public static readonly viewType = 'vsrocq.search'; 
 
     private _view?: vscode.WebviewView; 
     private _queries: Query[] = [];
@@ -71,12 +71,12 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
     };
 
     public collapseAll() {
-        vscode.commands.executeCommand('setContext', 'vscoq.expandedQueries', false);
+        vscode.commands.executeCommand('setContext', 'vsrocq.expandedQueries', false);
         this._view?.webview.postMessage({"command": "collapseAll"});
     };
 
     public expandAll() {
-        vscode.commands.executeCommand('setContext', 'vscoq.expandedQueries', true);
+        vscode.commands.executeCommand('setContext', 'vsrocq.expandedQueries', true);
         this._view?.webview.postMessage({"command": "expandAll"});
     };
 
@@ -96,7 +96,7 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    public renderSearchResult(searchResult: SearchCoqResult) {
+    public renderSearchResult(searchResult: SearchRocqResult) {
         this._view?.webview.postMessage({"command": "searchResponse", "result": searchResult});
     };
 
@@ -162,10 +162,10 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
                       );
 
                     if(type === "search") {  
-                        const params: SearchCoqRequest = {id, textDocument, pattern, position};
-                        const req = new RequestType<SearchCoqRequest, SearchCoqHandshake, void>("vscoq/search");
+                        const params: SearchRocqRequest = {id, textDocument, pattern, position};
+                        const req = new RequestType<SearchRocqRequest, SearchRocqHandshake, void>("vsrocq/search");
                         client.sendRequest(req, params).then(
-                            (handshake: SearchCoqHandshake) => {
+                            (handshake: SearchRocqHandshake) => {
                                 webview.postMessage({"command": "launchedSearch"});
                             }, 
                             (err: QueryError) => {
@@ -176,11 +176,11 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
                     }
 
                     if(type === "about") {
-                        const params: AboutCoqRequest = {textDocument, pattern, position};
-                        const req = new RequestType<AboutCoqRequest, AboutCoqResponse, void>("vscoq/about");
+                        const params: AboutRocqRequest = {textDocument, pattern, position};
+                        const req = new RequestType<AboutRocqRequest, AboutRocqResponse, void>("vsrocq/about");
                             
                         client.sendRequest(req, params).then(
-                            (result: AboutCoqResponse) => {
+                            (result: AboutRocqResponse) => {
                                 const notification = {"statement": result, "id": id};
                                 webview.postMessage({"command": "aboutResponse", "result": notification});
                             }, 
@@ -192,11 +192,11 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
                     }
 
                     if(type === "check") {
-                        const params: CheckCoqRequest = {textDocument, pattern, position};
-                        const req = new RequestType<CheckCoqRequest, CheckCoqResponse, void>("vscoq/check");
+                        const params: CheckRocqRequest = {textDocument, pattern, position};
+                        const req = new RequestType<CheckRocqRequest, CheckRocqResponse, void>("vsrocq/check");
                             
                         client.sendRequest(req, params).then(
-                            (result: CheckCoqResponse) => {
+                            (result: CheckRocqResponse) => {
                                 const notification = {"statement": result, "id": id};
                                 webview.postMessage({"command": "checkResponse", "result": notification});
                             }, 
@@ -208,11 +208,11 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
                     }
 
                     if(type === "locate") {
-                        const params: CheckCoqRequest = {textDocument, pattern, position};
-                        const req = new RequestType<LocateCoqRequest, LocateCoqResponse, void>("vscoq/locate");
+                        const params: CheckRocqRequest = {textDocument, pattern, position};
+                        const req = new RequestType<LocateRocqRequest, LocateRocqResponse, void>("vsrocq/locate");
                             
                         client.sendRequest(req, params).then(
-                            (result: LocateCoqResponse) => {
+                            (result: LocateRocqResponse) => {
                                 const notification = {"statement": result, "id": id};
                                 webview.postMessage({"command": "locateResponse", "result": notification});
                             }, 
@@ -224,11 +224,11 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
                     }
 
                     if(type === "print") {
-                        const params: CheckCoqRequest = {textDocument, pattern, position};
-                        const req = new RequestType<PrintCoqRequest, PrintCoqResponse, void>("vscoq/print");
+                        const params: CheckRocqRequest = {textDocument, pattern, position};
+                        const req = new RequestType<PrintRocqRequest, PrintRocqResponse, void>("vsrocq/print");
                             
                         client.sendRequest(req, params).then(
-                            (result: PrintCoqResponse) => {
+                            (result: PrintRocqResponse) => {
                                 const notification = {"statement": result, "id": id};
                                 webview.postMessage({"command": "locateResponse", "result": notification});
                             }, 
@@ -251,15 +251,15 @@ export default class SearchViewProvider implements vscode.WebviewViewProvider {
                 return;
 
             case "toggleExpandButton":
-                vscode.commands.executeCommand('setContext', 'vscoq.expandedQueries', message.value);
+                vscode.commands.executeCommand('setContext', 'vsrocq.expandedQueries', message.value);
                 return;
 
             case "enableCollapseButton":
-                vscode.commands.executeCommand('setContext', 'vscoq.hasSearchResults', true);
+                vscode.commands.executeCommand('setContext', 'vsrocq.hasSearchResults', true);
                 return;
 
             case "disableCollapseButton":
-                vscode.commands.executeCommand('setContext', 'vscoq.hasSearchResults', false);
+                vscode.commands.executeCommand('setContext', 'vsrocq.hasSearchResults', false);
                 return;
         }
       }

@@ -17,7 +17,7 @@ import Client from '../client';
 
 export class DocumentStateViewProvider implements TextDocumentContentProvider {
 
-    readonly scheme = "vscoq-document-state";
+    readonly scheme = "vsrocq-document-state";
     readonly uri = Uri.parse(this.scheme + "://doc");
 
     private textDocument: TextDocumentIdentifier | null = null; 
@@ -51,7 +51,7 @@ export class DocumentStateViewProvider implements TextDocumentContentProvider {
         }
 
         const params: DocumentStateRequest = {textDocument: this.textDocument}; 
-        const req = new RequestType<DocumentStateRequest, DocumentStateResponse, void>("vscoq/documentState");
+        const req = new RequestType<DocumentStateRequest, DocumentStateResponse, void>("vsrocq/documentState");
         Client.writeToVsrocqChannel("[DocumentStateViewProvider] Getting document state for uri: " + this.textDocument.uri.toString());
         return this._client.sendRequest(req, params).then(
             (result: DocumentStateResponse) => {

@@ -1,13 +1,8 @@
-import { window, workspace } from 'vscode';
+import { workspace } from 'vscode';
 import { Disposable } from "vscode-languageclient";
-import { ExecException, exec } from 'child_process';
-import * as path from 'path';
-import { isFileInFolder } from './fileHelper';
-import { ServerSessionOptions } from 'http2';
+import { exec } from 'child_process';
 import { ServerOptions } from 'vscode-languageclient/node';
 import Client from '../client';
-import { version } from 'os';
-import { match } from 'assert';
 import * as which from 'which';
 
 export enum ToolChainErrorCode {
@@ -20,25 +15,25 @@ export interface ToolchainError {
     message: string; 
 }
 
-export default class VsCoqToolchainManager implements Disposable {
+export default class VsRocqToolchainManager implements Disposable {
 
-    private _vscoqtopPath: string = "";
-    private _coqVersion: string = "";
+    private _vsrocqtopPath: string = "";
+    private _rocqVersion: string = "";
     private _versionFullOutput: string = "";
-    private _coqPath: string = "";
+    private _rocqPath: string = "";
 
     public dispose(): void {
         
     }
 
     public intialize() : Promise<void> {
-        Client.writeToVsrocqChannel("[Toolchain] Searching for vscoqtop");
+        Client.writeToVsrocqChannel("[Toolchain] Searching for vsrocqtop");
         return new Promise((resolve, reject: ((reason: ToolchainError) => void)) => {
-            this.vscoqtopPath().then(vscoqtopPath => {
-                if(vscoqtopPath) {
-                    Client.writeToVsrocqChannel("[Toolchain] Found path: " + vscoqtopPath);
-                    this._vscoqtopPath = vscoqtopPath;
-                    this.vscoqtopWhere().then(
+            this.vsrocqtopPath().then(vsrocqtopPath => {
+                if(vsrocqtopPath) {
+                    Client.writeToVsrocqChannel("[Toolchain] Found path: " + vsrocqtopPath);
+                    this._vsrocqtopPath = vsrocqtopPath;
+                    this.vsrocqtopWhere().then(
                         () => {
                             resolve();
                         }, 
@@ -48,10 +43,10 @@ export default class VsCoqToolchainManager implements Disposable {
                     );
 
                 } else {
-                    Client.writeToVsrocqChannel("[Toolchain] Did not find vscoqtop path");
+                    Client.writeToVsrocqChannel("[Toolchain] Did not find vsrocqtop path");
                     reject({
                         status: ToolChainErrorCode.notFound, 
-                        message: "VsCoq couldn't launch because no language server was found. You can install the language server (requires Coq 8.18 or higher) or use VsCoq Legacy."
+                        message: "VsRocq couldn't launch because no language server was found. You can install the language server (requires Rocq 8.18 or higher) or use VsRocq Legacy."
                     });
                 }
             });
@@ -61,9 +56,9 @@ export default class VsCoqToolchainManager implements Disposable {
 
     public getServerConfiguration() : ServerOptions {
 
-        const config = workspace.getConfiguration('vscoq');
+        const config = workspace.getConfiguration('vsrocq');
         const serverOptions : ServerOptions = {
-            command: this._vscoqtopPath, 
+            command: this._vsrocqtopPath, 
             args: config.args,
             options: {
                 cwd: workspace.rootPath,
@@ -73,42 +68,42 @@ export default class VsCoqToolchainManager implements Disposable {
         return serverOptions;
     };
 
-    public getVsCoqTopPath() : string {
-        return this._vscoqtopPath;
+    public getVsRocqTopPath() : string {
+        return this._vsrocqtopPath;
     }
 
-    public getCoqPath() : string {
-        return this._coqPath;
+    public getRocqPath() : string {
+        return this._rocqPath;
     }
 
-    public getCoqVersion() : string {
-        return this._coqVersion;
+    public getRocqVersion() : string {
+        return this._rocqVersion;
     };
 
     public getversionFullOutput() : string {
         return this._versionFullOutput;
     }
 
-    private async vscoqtopPath () : Promise<string> {
-        const vscoqtopPath = workspace.getConfiguration('vscoq').get('path') as string;
-        if(vscoqtopPath) {
-            return vscoqtopPath; 
+    private async vsrocqtopPath () : Promise<string> {
+        const vsrocqtopPath = workspace.getConfiguration('vsrocq').get('path') as string;
+        if(vsrocqtopPath) {
+            return vsrocqtopPath; 
         }
         else {
-            return await this.searchForVscoqtopInPath();
+            return await this.searchForVsrocqtopInPath();
         }
     }
 
-    private async searchForVscoqtopInPath () : Promise<string> {        
-        return await which("vscoqtop", { nothrow: true }) ?? "";
+    private async searchForVsrocqtopInPath () : Promise<string> {        
+        return await which("vsrocqtop", { nothrow: true }) ?? "";
     }
 
-    // Launch the vscoqtop -where command with the found exec and provided args
-    private vscoqtopWhere() : Promise<void> {
+    // Launch the vsrocqtop -where command with the found exec and provided args
+    private vsrocqtopWhere() : Promise<void> {
         
-        const config = workspace.getConfiguration('vscoq').get('args') as string[];
+        const config = workspace.getConfiguration('vsrocq').get('args') as string[];
         const options = ["-where"].concat(config);
-        const cmd = [this._vscoqtopPath].concat(options).join(' ');
+        const cmd = [this._vsrocqtopPath].concat(options).join(' ');
 
         return new Promise((resolve, reject: ((reason: ToolchainError) => void)) => {
             exec(cmd, {cwd: workspace.rootPath}, (error, stdout, stderr) => {
@@ -116,20 +111,20 @@ export default class VsCoqToolchainManager implements Disposable {
                 if(error) {
                     reject({
                         status: ToolChainErrorCode.launchError, 
-                        message: `${this._vscoqtopPath} crashed with the following message: ${stderr}
-                        This could be due to a bad Coq installation or an incompatible Coq version.`
+                        message: `${this._vsrocqtopPath} crashed with the following message: ${stderr}
+                        This could be due to a bad Rocq installation or an incompatible Rocq version.`
                     });
                 } else {
-                    this._coqPath = stdout;
-                    this.coqVersion().then(
+                    this._rocqPath = stdout;
+                    this.rocqVersion().then(
                         () => {
                             resolve();
                         },
                         (err) => {
                             reject({
                                 status: ToolChainErrorCode.launchError,
-                                message: `${this._vscoqtopPath} crashed with the following message: ${err}.
-                                This could be due to a bad Coq installation or an incompatible Coq version`
+                                message: `${this._vsrocqtopPath} crashed with the following message: ${err}.
+                                This could be due to a bad Rocq installation or an incompatible Rocq version`
                             });
                         }
                     );
@@ -139,11 +134,11 @@ export default class VsCoqToolchainManager implements Disposable {
         });
     };
 
-    private coqVersion() : Promise<void> {
+    private rocqVersion() : Promise<void> {
 
-        const config = workspace.getConfiguration('vscoq').get('args') as string[];
+        const config = workspace.getConfiguration('vsrocq').get('args') as string[];
         const options = ["-v"].concat(config);
-        const cmd = [this._vscoqtopPath].concat(options).join(' ');
+        const cmd = [this._vsrocqtopPath].concat(options).join(' ');
 
         return new Promise((resolve, reject: (reason: string) => void) => {
             exec(cmd, {cwd: workspace.rootPath}, (error, stdout, stderr) => {
@@ -154,7 +149,7 @@ export default class VsCoqToolchainManager implements Disposable {
                     this._versionFullOutput = stdout;
                     const matchArray = stdout.match(versionRegexp);
                     if(matchArray) {
-                        this._coqVersion = matchArray[0];
+                        this._rocqVersion = matchArray[0];
                     }
                     resolve();
                 }

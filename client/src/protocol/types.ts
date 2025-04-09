@@ -47,14 +47,14 @@ export enum MessageSeverity {
     info = "Information"
 }
 
-export type CoqMessage = [MessageSeverity, PpString];
+export type RocqMessage = [MessageSeverity, PpString];
 
 export interface ProofViewNotification {
     proof: Nullable<ProofViewGoals>;
-    messages: CoqMessage[];
+    messages: RocqMessage[];
 }
 
-export interface CoqLogMessage {
+export interface RocqLogMessage {
     message: string;
 }
 
@@ -75,14 +75,14 @@ export interface ErrorAlertNotification {
     range: Range;
 }
 
-export interface SearchCoqRequest {
+export interface SearchRocqRequest {
     id: string;
     textDocument: VersionedTextDocumentIdentifier;
     pattern: string; 
     position: Position;
 }
 
-export interface SearchCoqHandshake {
+export interface SearchRocqHandshake {
     id: string;
 }
 
@@ -91,45 +91,45 @@ export interface QueryError {
     message: string; 
 }
 
-export interface SearchCoqResult {
+export interface SearchRocqResult {
     id: string;
     name: PpString; 
     statement: PpString;
 }
 
-export interface AboutCoqRequest {
+export interface AboutRocqRequest {
     textDocument: VersionedTextDocumentIdentifier;
     pattern: string; 
     position: Position;
     goalIndex?: number;
 }
 
-export type AboutCoqResponse = PpString;
+export type AboutRocqResponse = PpString;
 
-export interface CheckCoqRequest {
+export interface CheckRocqRequest {
     textDocument: VersionedTextDocumentIdentifier;
     pattern: string; 
     position: Position;
     goalIndex?: number;
 };
 
-export type CheckCoqResponse = PpString; 
+export type CheckRocqResponse = PpString; 
 
-export interface LocateCoqRequest {
+export interface LocateRocqRequest {
     textDocument: VersionedTextDocumentIdentifier;
     pattern: string; 
     position: Position;
 };
 
-export type LocateCoqResponse = PpString; 
+export type LocateRocqResponse = PpString; 
 
-export interface PrintCoqRequest {
+export interface PrintRocqRequest {
     textDocument: VersionedTextDocumentIdentifier;
     pattern: string; 
     position: Position;
 };
 
-export type PrintCoqResponse = PpString; 
+export type PrintRocqResponse = PpString; 
 
 export interface DocumentStateRequest {
     textDocument: TextDocumentIdentifier;
@@ -139,11 +139,11 @@ export interface DocumentStateResponse {
     document: string;
 }
 
-export interface ResetCoqRequest {
+export interface ResetRocqRequest {
     textDocument: TextDocumentIdentifier;
 }
 
-export interface ResetCoqResponse {};
+export interface ResetRocqResponse {};
 
 export interface DocumentProofsRequest {
     textDocument: TextDocumentIdentifier;
