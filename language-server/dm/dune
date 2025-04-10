@@ -4,7 +4,7 @@
  (modules :standard \ vsrocqtop_proof_worker vsrocqtop_tactic_worker)
  (preprocess (pps ppx_optcomp -- -cookie "ppx_optcomp.env=env ~rocq:(Defined \"%{coq:version.major}.%{coq:version.minor}\")"))
  (preprocessor_deps vsrocq_config.mlh)
- (libraries base rocq-core.sysinit rocq-core.vernac rocq-core.parsing lsp sel protocol language))
+ (libraries base rocq-runtime.sysinit rocq-runtime.vernac rocq-runtime.parsing lsp sel protocol language))
 
 (executable
  (name vsrocqtop_proof_worker)
@@ -14,7 +14,7 @@
  (package vsrocq-language-server)
  (preprocess (pps ppx_optcomp -- -cookie "ppx_optcomp.env=env ~rocq:(Defined \"%{coq:version.major}.%{coq:version.minor}\")"))
  (preprocessor_deps vsrocq_config.mlh)
- (libraries rocq-core.sysinit rocq-core.tactics lsp dm protocol))
+ (libraries rocq-runtime.sysinit rocq-runtime.tactics lsp dm protocol))
 
 (executable
  (name vsrocqtop_tactic_worker)
@@ -24,7 +24,7 @@
  (package vsrocq-language-server)
  (preprocess (pps ppx_optcomp -- -cookie "ppx_optcomp.env=env ~rocq:(Defined \"%{coq:version.major}.%{coq:version.minor}\")"))
  (preprocessor_deps vsrocq_config.mlh)
- (libraries rocq-core.sysinit rocq-core.tactics lsp dm protocol))
+ (libraries rocq-runtime.sysinit rocq-runtime.tactics lsp dm protocol))
 
 (rule
   (target vsrocq_config.mlh)

@@ -8,13 +8,16 @@ bug-reports: "https://github.com/rocq-prover/vsrocq/issues"
 dev-repo: "git+https://github.com/rocq-prover/vsrocq"
 
 build: [
+  ["etc/rocq-wrap-coqc.sh"] {!coq-core:installed}
   [ "dune" "build" "-p" name "-j" jobs ]
 ]
 depends: [
   "ocaml" { >= "4.14" }
   "dune" { >= "3.5" }
-  "rocq-core" { ((>= "8.18" < "8.21") | (= "dev")) }
-  "rocq-stdlib" { ((>= "8.18" < "8.21") | (= "dev")) }
+  ("coq-core" { ((>= "8.18" < "8.21") | (= "dev")) }
+  | "rocq-core" { ((>= "9.0+rc1" < "9.1~") | (= "dev")) })
+  ("coq-stdlib" { ((>= "8.18" < "8.21") | (= "dev")) }
+  | "rocq-stdlib" { ((>= "9.0+rc1" < "9.1~") | (= "dev")) })
   "yojson"
   "jsonrpc" { >= "1.15"}
   "ocamlfind"
