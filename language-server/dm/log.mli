@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -26,10 +26,10 @@ val handle_event : event -> unit
 val worker_initialization_begins : unit -> unit
 val worker_initialization_done : fwd_event:(event -> unit) -> unit
 
-(* debug messages coming from either the language server of Coq *)
+(* debug messages coming from either the language server of Rocq *)
 val debug : event Sel.Event.t
 
-[%% if coq = "8.18" || coq = "8.19" || coq = "8.20" ]
+[%% if rocq = "8.18" || rocq = "8.19" || rocq = "8.20" ]
 val feedback_add_feeder_on_Message : (Feedback.route_id -> Stateid.t -> Feedback.doc_id -> Feedback.level -> Loc.t option -> 'a list -> Pp.t -> unit) -> int
 [%%else]
 val feedback_add_feeder_on_Message : (Feedback.route_id -> Stateid.t  -> Feedback.doc_id -> Feedback.level -> Loc.t option -> Quickfix.t list -> Pp.t -> unit) -> int

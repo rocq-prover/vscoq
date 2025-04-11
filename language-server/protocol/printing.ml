@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -62,14 +62,14 @@ let rec regroup_tags_aux acc = function
 and regroup_tags l =
  match regroup_tags_aux [[]] l with [l] -> List.rev l | _ -> failwith "tag not closed"
 
-let rec pp_of_coqpp t = match Pp.repr t with
+let rec pp_of_rocqpp t = match Pp.repr t with
   | Pp.Ppcmd_empty -> Ppcmd_empty
   | Pp.Ppcmd_string s -> Ppcmd_string s
-  | Pp.Ppcmd_glue l -> (* We are working around a Coq hack here *)
+  | Pp.Ppcmd_glue l -> (* We are working around a Rocq hack here *)
     let l = regroup_tags l in
-    Ppcmd_glue (List.map pp_of_coqpp l)
-  | Pp.Ppcmd_box (bt, pp) -> Ppcmd_box (bt, pp_of_coqpp pp)
-  | Pp.Ppcmd_tag (tag, pp) -> Ppcmd_tag (tag, pp_of_coqpp pp)
+    Ppcmd_glue (List.map pp_of_rocqpp l)
+  | Pp.Ppcmd_box (bt, pp) -> Ppcmd_box (bt, pp_of_rocqpp pp)
+  | Pp.Ppcmd_tag (tag, pp) -> Ppcmd_tag (tag, pp_of_rocqpp pp)
   | Pp.Ppcmd_print_break (m,n) -> Ppcmd_print_break (m,n)
   | Pp.Ppcmd_force_newline -> Ppcmd_force_newline
   | Pp.Ppcmd_comment l -> Ppcmd_comment l

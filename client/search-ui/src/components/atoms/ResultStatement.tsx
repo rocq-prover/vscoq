@@ -17,7 +17,7 @@ const resultStatement: FunctionComponent<ResultStatementProps> = (props) => {
     
     return statement ?
         <span className={classNames.join(' ')}>
-            <PpDisplay pp={statement} coqCss={classes} maxDepth={17}/>
+            <PpDisplay pp={statement} rocqCss={classes} maxDepth={17}/>
         </span>
         : null;
     

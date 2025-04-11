@@ -38,7 +38,7 @@ const message : FunctionComponent<MessageProps> = (props) => {
         <span className={classNames.join(' ')}>
             <PpDisplay
                 pp={message}
-                coqCss={classes}
+                rocqCss={classes}
                 maxDepth={maxDepth}
             />
         </span>

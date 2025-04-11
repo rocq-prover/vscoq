@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
-import { Command } from 'vscode';
 
 const QUICKFIX_REPLACE = 'quickfix-replace';
-export const QUICKFIX_COMMAND = 'vscoq.quickfix';
+export const QUICKFIX_COMMAND = 'vsrocq.quickfix';
 
 export class QuickFixDiagnostic extends vscode.Diagnostic {
     readonly data?: any[];
@@ -11,7 +10,7 @@ export class QuickFixDiagnostic extends vscode.Diagnostic {
 /**
  * Provides code actions corresponding to diagnostic problems.
  */
-export class CoqWarningQuickFix implements vscode.CodeActionProvider {
+export class RocqWarningQuickFix implements vscode.CodeActionProvider {
 
 	public static readonly providedCodeActionKinds = [
 		vscode.CodeActionKind.QuickFix

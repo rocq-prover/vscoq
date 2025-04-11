@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -20,7 +20,7 @@ open Protocol.ExtProtocol
 open Protocol.Printing
 open CompletionItems
 
-(** The document manager holds the view that Coq has of the currently open
+(** The document manager holds the view that Rocq has of the currently open
     states. It makes it easy for IDEs to handle text edits, navigate
     and get feedback. Note that it does not require IDEs to parse vernacular
     sentences. *)
@@ -92,7 +92,7 @@ val interpret_in_background : state -> should_block_on_error:bool -> (state * ev
     is done in background (with lower priority) *)
 
 val reset : state -> state * events 
-(** resets Coq *)
+(** resets Rocq *)
 
 val executed_ranges : state -> Settings.Mode.t -> exec_overview
 (** [executes_ranges doc mode] returns the ranges corresponding to the sentences

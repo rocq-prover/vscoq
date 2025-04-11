@@ -9,7 +9,7 @@
 }
 
 .GoalIndex {
-    color: var(--vscode-coq-goalId);
+    color: var(--vscode-rocq-goalId);
     margin-right: 6px;
     text-wrap: nowrap;
     font-size: x-small;

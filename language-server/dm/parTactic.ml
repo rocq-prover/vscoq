@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -35,7 +35,7 @@ module TacticJob = struct
     goal     : Evar.t;
     name     : string }
   let name = "tactic"
-  let binary_name = "vscoqtop_tactic_worker.opt"
+  let binary_name = "vsrocqtop_tactic_worker.opt"
   let initial_pool_size = 2
 
 end
@@ -60,13 +60,13 @@ let assign_tac ~abstract res : unit Proofview.tactic =
       tclUNIT ()
   end)
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq = "8.18" || rocq = "8.19"]
 let command_focus = Proof.new_focus_kind ()
 [%%else]
-let command_focus = Proof.new_focus_kind "vscoq_command_focus"
+let command_focus = Proof.new_focus_kind "vsrocq_command_focus"
 [%%endif]
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
 let get_ustate sigma = Evd.evar_universe_context sigma
 [%%else]
 let get_ustate sigma = Evd.ustate sigma

@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -12,7 +12,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-[%%import "vscoq_config.mlh"]
+[%%import "vsrocq_config.mlh"]
 
 open Lsp.Types
 open Protocol
@@ -272,9 +272,9 @@ let id_of_pos_opt st = function
 let get_messages st id =
   let error = ExecutionManager.error st.execution_state id in
   let feedback = ExecutionManager.feedback st.execution_state id in
-  let feedback = List.map (fun (lvl,_oloc,_,msg) -> DiagnosticSeverity.of_feedback_level lvl, pp_of_coqpp msg) feedback  in
+  let feedback = List.map (fun (lvl,_oloc,_,msg) -> DiagnosticSeverity.of_feedback_level lvl, pp_of_rocqpp msg) feedback  in
   match error with
-  | Some (_oloc,msg) -> (DiagnosticSeverity.Error, pp_of_coqpp msg) :: feedback
+  | Some (_oloc,msg) -> (DiagnosticSeverity.Error, pp_of_rocqpp msg) :: feedback
   | None -> feedback
 
 let get_info_messages st pos =
@@ -288,7 +288,7 @@ let get_info_messages st pos =
     in
     let feedback = ExecutionManager.feedback st.execution_state id in
     let feedback = feedback |> List.filter info in
-    List.map (fun (lvl,_oloc,_,msg) -> DiagnosticSeverity.of_feedback_level lvl, pp_of_coqpp msg) feedback
+    List.map (fun (lvl,_oloc,_,msg) -> DiagnosticSeverity.of_feedback_level lvl, pp_of_rocqpp msg) feedback
 
 let create_execution_event background event =
   let priority = if background then None else Some PriorityManager.execution in
@@ -534,7 +534,7 @@ let validate_document state (Document.{unchanged_id; invalid_ids; previous_docum
   let execution_state = ExecutionManager.reset_overview execution_state previous_document in
   { state with  execution_state; observe_id; document_state = Parsed }
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq ="8.18" || rocq ="8.19"]
 let start_library top opts = Coqinit.start_library ~top opts
 [%%else]
 let start_library top opts =
@@ -542,7 +542,7 @@ let start_library top opts =
   Coqinit.start_library ~intern ~top opts;
 [%%endif]
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq ="8.18" || rocq ="8.19" || rocq ="8.20"]
 let dirpath_of_top = Coqargs.dirpath_of_top
 [%%else]
 let dirpath_of_top = Coqinit.dirpath_of_top
@@ -738,8 +738,8 @@ let get_completions st pos =
         []
     | Some lemmas -> lemmas
 
-[%%if coq = "8.18" || coq = "8.19"]
-[%%elif coq = "8.20"]
+[%%if rocq ="8.18" || rocq ="8.19"]
+[%%elif rocq ="8.20"]
   let parsable_make = Pcoq.Parsable.make
   let unfreeze = Pcoq.unfreeze
   let entry_parse = Pcoq.Entry.parse
@@ -749,7 +749,7 @@ let get_completions st pos =
   let entry_parse = Procq.Entry.parse
 [%%endif]
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq ="8.18" || rocq ="8.19"]
 let parse_entry st pos entry pattern =
   let pa = Pcoq.Parsable.make (Gramlib.Stream.of_string pattern) in
   let st = match Document.find_sentence_before st.document pos with
@@ -768,7 +768,7 @@ let parse_entry st pos entry pattern =
   entry_parse entry pa
 [%%endif]
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq ="8.18" || rocq ="8.19" || rocq ="8.20"]
   let smart_global = Pcoq.Prim.smart_global
 [%%else]
   let smart_global = Procq.Prim.smart_global
@@ -782,7 +782,7 @@ let about st pos ~pattern =
     try
       let ref_or_by_not = parse_entry st loc (smart_global) pattern in
       let udecl = None (* TODO? *) in
-      Ok (pp_of_coqpp @@ Prettyp.print_about env sigma ref_or_by_not udecl)
+      Ok (pp_of_rocqpp @@ Prettyp.print_about env sigma ref_or_by_not udecl)
     with e ->
       let e, info = Exninfo.capture e in
       let message = Pp.string_of_ppcmds @@ CErrors.iprint (e, info) in
@@ -842,14 +842,14 @@ let hover st pos =
         hover_of_sentence st loc pattern (Document.find_next_qed st.document loc)
       | _ -> None
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq ="8.18" || rocq ="8.19" || rocq ="8.20"]
   let lconstr = Pcoq.Constr.lconstr
 [%%else]
   let lconstr = Procq.Constr.lconstr
 [%%endif]
 
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq ="8.18" || rocq ="8.19" || rocq ="8.20"]
 let jump_to_definition _  _ = None
 [%%else]
 let jump_to_definition st pos =
@@ -898,13 +898,13 @@ let check st pos ~pattern =
     let rc = parse_entry st loc lconstr pattern in
     try
       let redexpr = None in
-      Ok (pp_of_coqpp @@ Vernacentries.check_may_eval env sigma redexpr rc)
+      Ok (pp_of_rocqpp @@ Vernacentries.check_may_eval env sigma redexpr rc)
     with e ->
       let e, info = Exninfo.capture e in
       let message = Pp.string_of_ppcmds @@ CErrors.iprint (e, info) in
       Error ({message; code=None})
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq ="8.18" || rocq ="8.19"]
 let print_located_qualid _ qid = Prettyp.print_located_qualid qid
 [%%else]
 let print_located_qualid = Prettyp.print_located_qualid
@@ -916,12 +916,12 @@ let locate st pos ~pattern =
   | None -> Error ({message="No context found"; code=None}) (*TODO execute *)
   | Some (sigma, env) ->
     match parse_entry st loc (smart_global) pattern with
-    | { v = AN qid } -> Ok (pp_of_coqpp @@ print_located_qualid env qid)
+    | { v = AN qid } -> Ok (pp_of_rocqpp @@ print_located_qualid env qid)
     | { v = ByNotation (ntn, sc)} ->
-      Ok( pp_of_coqpp @@ Notation.locate_notation
+      Ok( pp_of_rocqpp @@ Notation.locate_notation
         (Constrextern.without_symbols (Printer.pr_glob_constr_env env sigma)) ntn sc)
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq ="8.18" || rocq ="8.19"]
   let print_name = Prettyp.print_name
 [%%else]
   let print_name =
@@ -936,15 +936,15 @@ let print st pos ~pattern =
   | Some (sigma, env) ->
     let qid = parse_entry st loc (smart_global) pattern in
     let udecl = None in (*TODO*)
-    Ok ( pp_of_coqpp @@ print_name env sigma qid udecl )
+    Ok ( pp_of_rocqpp @@ print_name env sigma qid udecl )
 
 (* Ignore nested proofs option (lives in STM) instead of failing with
    anomaly when it is set in a .vo we Require.
    cf #1060 *)
 
 let warn_nested_proofs_opt =
-  CWarnings.create ~name:"vscoq-nested-proofs-flag"
-    Pp.(fun () -> str "Flag \"Nested Proofs Allowed\" is ignored by VsCoq.")
+  CWarnings.create ~name:"vsrocq-nested-proofs-flag"
+    Pp.(fun () -> str "Flag \"Nested Proofs Allowed\" is ignored by VsRocq.")
 
 let () =
   Goptions.declare_bool_option

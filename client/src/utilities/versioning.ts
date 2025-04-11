@@ -2,11 +2,11 @@ import { window, ExtensionContext } from "vscode";
 import { compareVersions } from "compare-versions";
 import Client from "../client";
 
-export const getCoqdocUrl = (coqVersion: string) => {
-    if(compareVersions(coqVersion, "8.18.0") >= 0 && compareVersions(coqVersion, "9.0.0") < 0) {
-        return (`https://coq.inria.fr/doc/V${coqVersion}/refman/index.html`);
+export const getRocqdocUrl = (rocqVersion: string) => {
+    if(compareVersions(rocqVersion, "8.18.0") >= 0 && compareVersions(rocqVersion, "9.0.0") < 0) {
+        return (`https://rocq.inria.fr/doc/V${rocqVersion}/refman/index.html`);
     }
-    return "https://coq.inria.fr/doc/master/refman/index.html"
+    return "https://rocq.inria.fr/doc/master/refman/index.html";
 };
 
 export const checkVersion = (client: Client, context: ExtensionContext) => {
@@ -16,15 +16,15 @@ export const checkVersion = (client: Client, context: ExtensionContext) => {
         const serverInfo = client.initializeResult?.serverInfo;
         if(serverInfo !== undefined) {
             const {name, version} = serverInfo;
-            Client.writeToVscoq2Channel("[Versioning] Intialized server " + name + " [" + version + "]");
+            Client.writeToVsrocqChannel("[Versioning] Intialized server " + name + " [" + version + "]");
             if(!checkCompat(extensionVersion, version)) {
-                window.showErrorMessage('This version of VsCoq requires version ' + versionRequirements[extensionVersion] + ' of ' + name + '. Found version: ' + version + '. Please upgrade the language server.');
+                window.showErrorMessage('This version of VsRocq requires version ' + versionRequirements[extensionVersion] + ' of ' + name + '. Found version: ' + version + '. Please upgrade the language server.');
             }
         } else {
-            Client.writeToVscoq2Channel("Could not run compatibility tests: failed to get serverInfo");
+            Client.writeToVsrocqChannel("Could not run compatibility tests: failed to get serverInfo");
         }  
     } else {
-        Client.writeToVscoq2Channel("Could not run compatibility tests: failed to receive initializeResult");
+        Client.writeToVsrocqChannel("Could not run compatibility tests: failed to receive initializeResult");
     }
 
 };

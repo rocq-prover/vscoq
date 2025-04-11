@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -89,10 +89,10 @@ val overview : state -> exec_overview
 val overview_until_range : state -> LspWrapper.Range.t -> exec_overview
 val print_exec_overview_of_state : state -> unit
 
-(** Coq toplevels for delegation without fork *)
+(** Rocq toplevels for delegation without fork *)
 module ProofWorkerProcess : sig
   type options
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
    val parse_options : string list -> options * string list
 [%%else]
    val parse_options : Coqargs.t -> string list -> options * string list

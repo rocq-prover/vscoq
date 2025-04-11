@@ -17,21 +17,21 @@ import { makeVersionedDocumentId } from './utilities/utils';
 export const sendInterpretToPoint = (editor: TextEditor, client: Client) => {
     const textDocument = makeVersionedDocumentId(editor);
     const position = editor.selection.active;
-    client.sendNotification("vscoq/interpretToPoint", {textDocument: textDocument, position: position });
+    client.sendNotification("vsrocq/interpretToPoint", {textDocument: textDocument, position: position });
 };
 
 export const sendInterpretToEnd = (editor: TextEditor,  client: Client) => {
     const textDocument = makeVersionedDocumentId(editor);
-    client.sendNotification("vscoq/interpretToEnd", {textDocument: textDocument});
+    client.sendNotification("vsrocq/interpretToEnd", {textDocument: textDocument});
 };
 
 export const sendStepForward = (editor: TextEditor,  client: Client) => {
     const textDocument = makeVersionedDocumentId(editor);
-    client.sendNotification("vscoq/stepForward", {textDocument: textDocument});
+    client.sendNotification("vsrocq/stepForward", {textDocument: textDocument});
 };
 
 export const sendStepBackward = (editor: TextEditor,  client: Client) => {
     const textDocument = makeVersionedDocumentId(editor);
-    client.sendNotification("vscoq/stepBackward", {textDocument: textDocument});
+    client.sendNotification("vsrocq/stepBackward", {textDocument: textDocument});
 };
 

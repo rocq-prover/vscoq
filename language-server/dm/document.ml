@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -478,7 +478,7 @@ let string_of_diff_item doc = function
 let string_of_diff doc l =
   String.concat "\n" (List.flatten (List.map (string_of_diff_item doc) l))
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
   let get_keyword_state = Pcoq.get_keyword_state
 [%%else]
   let get_keyword_state = Procq.get_keyword_state
@@ -499,14 +499,14 @@ let parse_one_sentence stream ~st =
   *)
 
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq = "8.18" || rocq = "8.19"]
 let parse_one_sentence ?loc stream ~st =
   Vernacstate.Synterp.unfreeze st;
   let entry = Pvernac.main_entry (Some (Synterp.get_default_proof_mode ())) in
   let pa = Pcoq.Parsable.make ?loc stream in
   let sentence = Pcoq.Entry.parse entry pa in
   (sentence, [])
-[%%elif coq = "8.20"]
+[%%elif rocq = "8.20"]
 let parse_one_sentence ?loc stream ~st =
   Vernacstate.Synterp.unfreeze st;
   Flags.record_comments := true;
@@ -532,13 +532,13 @@ let rec junk_sentence_end stream =
   | [] -> ()
   | _ ->  Stream.junk () stream; junk_sentence_end stream
 
-[%%if coq = "8.18"]
+[%%if rocq = "8.18"]
 exception E = Stream.Error
 [%%else]
 exception E = Grammar.Error
 [%%endif]
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq = "8.18" || rocq = "8.19"]
 let get_loc_from_info_or_exn e info =
   match e with
   | Synterp.UnmappedLibrary (_, qid) -> qid.loc
@@ -551,7 +551,7 @@ let get_loc_from_info_or_exn _ info =
 (* let get_qf_from_info info = Quickfix.get_qf info *)
 [%%endif]
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq = "8.18" || rocq = "8.19"]
 let get_entry ast = Synterp.synterp_control ast
 [%%else]
 let get_entry ast =

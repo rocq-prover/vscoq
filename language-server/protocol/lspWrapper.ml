@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -112,7 +112,7 @@ module FeedbackChannel = struct
 
 end
 
-module CoqFeedback = struct 
+module RocqFeedback = struct 
 
   type t = {
     range: Range.t; 
