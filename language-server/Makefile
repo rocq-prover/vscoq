@@ -20,10 +20,6 @@ fatalwarnings: $(DUNE_IN_FILES)
 	$(call dune_fatal,build)
 .PHONY: fatalwarnings
 
-test: $(DUNE_IN_FILES)
-	$(call dune_no_stop,runtest)
-.PHONY: test
-
 # simplify this and get rid of the dune.in files once we require Rocq >= 9.0
 %dune: %dune.in
 	@rm -f $@
@@ -50,7 +46,7 @@ build: $(DUNE_IN_FILES)
 .PHONY: build
 
 test: $(DUNE_IN_FILES)
-	$(call dune,runtest)
+	$(call dune_no_stop,runtest)
 .PHONY: test
 
 clean:
