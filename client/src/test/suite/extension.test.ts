@@ -33,7 +33,7 @@ suite('Should get diagnostics', function () {
 
 	test('Opens two files and gets feedback', async () => {
 
-		const ext = vscode.extensions.getExtension('maximedenes.vsrocq')!;
+		const ext = vscode.extensions.getExtension('rocq-prover.vsrocq')!;
 		await ext.activate();
 		vscode.workspace.getConfiguration().update('vsrocq.proof.mode',1);
 

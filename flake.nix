@@ -18,9 +18,9 @@
   }:
     flake-utils.lib.eachDefaultSystem (system: let
       name = "vscoq-client";
-      vscodeExtPublisher = "maximedenes";
+      vscodeExtPublisher = "rocq-prover";
       vscodeExtName = "vscoq";
-      vscodeExtUniqueId = "maximedenes.vscoq";
+      vscodeExtUniqueId = "rocq-prover.vsrocq";
       vscoq_version = "2.2.5";
       rocq = rocq-master.packages.${system};
     in rec {

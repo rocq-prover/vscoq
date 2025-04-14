@@ -105,7 +105,7 @@ export function activate(context: ExtensionContext) {
                         commands.executeCommand("extension.open", "rocq-community.vsrocq1");
                     }
                     if (act?.id === 1) {
-                        commands.executeCommand("extension.open", "maximedenes.vsrocq");
+                        commands.executeCommand("extension.open", "rocq-prover.vsrocq");
                     }
 
                 });
@@ -235,7 +235,7 @@ export function activate(context: ExtensionContext) {
                 });
         });
         registerVsrocqTextCommand('walkthrough', () => {
-            commands.executeCommand('workbench.action.openWalkthrough', 'maximedenes.vsrocq#rocq.welcome', false); 
+            commands.executeCommand('workbench.action.openWalkthrough', 'rocq-prover.vsrocq#rocq.welcome', false); 
         });
         registerVsrocqTextCommand('showManual', () => {
             const url = getRocqdocUrl(rocqTM.getRocqVersion());
