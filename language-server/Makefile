@@ -1,5 +1,8 @@
 dune_wrap = $(shell command -v coqc > /dev/null || echo "etc/rocq-wrap-coqc.sh")
-dune = $(dune_wrap) dune $(1) $(DUNE_$(1)_FLAGS --stop-on-first-error
+dune_no_stop = $(dune_wrap) dune $(1)
+dune = $(dune_wrap) dune $(1) --stop-on-first-error
+dune_dev = $(dune_wrap) dune $(1) --stop-on-first-error --profile dev
+dune_fatal = $(dune_wrap) dune $(1) --stop-on-first-error --profile fatalwarnings
 DUNE_IN_FILES = $(shell find . -name "dune.in" | sed -e 's/.in$$//')
 # This makefile is mostly calling dune and dune doesn't like
 # being called in parralel, so we enforce -j1
@@ -8,6 +11,18 @@ DUNE_IN_FILES = $(shell find . -name "dune.in" | sed -e 's/.in$$//')
 all: $(DUNE_IN_FILES)
 	$(call dune,build)
 .PHONY: all
+
+dev: $(DUNE_IN_FILES)
+	$(call dune_dev,build)
+.PHONY: dev
+
+fatalwarnings: $(DUNE_IN_FILES)
+	$(call dune_fatal,build)
+.PHONY: fatalwarnings
+
+test: $(DUNE_IN_FILES)
+	$(call dune_no_stop,runtest)
+.PHONY: test
 
 # simplify this and get rid of the dune.in files once we require Rocq >= 9.0
 %dune: %dune.in

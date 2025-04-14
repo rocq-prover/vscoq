@@ -171,12 +171,12 @@ jobs:
     - name: Build vsrocq-language-server
       run: |
         eval $(opam env)
-        cd language-server && make dune-files && dune build --profile ${{ matrix.profile }}
+        cd language-server && make ${{ matrix.profile }}
 
     - name: Unit tests
       run: |
         eval $(opam env)
-        cd language-server && make dune-files && dune runtest
+        cd language-server && make test
 
     - uses: actions/setup-node@v3
       with:
