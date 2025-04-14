@@ -87,6 +87,7 @@ export default class VsRocqToolchainManager implements Disposable {
     private async vsrocqtopPath () : Promise<string> {
         const vsrocqtopPath = workspace.getConfiguration('vsrocq').get('path') as string;
         if(vsrocqtopPath) {
+            Client.writeToVsrocqChannel("[Toolchain] Path set in user settings");
             return vsrocqtopPath; 
         }
         else {
