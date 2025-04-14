@@ -111,8 +111,8 @@ jobs:
     - run: cd client && yarn run package
     - run: eval $(opam env) && cd client && xvfb-run yarn test
       env:
-        VSCOQPATH: ${{ env.vsrocqtop }}
-        VSCOQARGS: "-bt"
+        VSROCQPATH: ${{ env.vsrocqtop }}
+        VSROCQARGS: "-bt"
     - if: ${{ failure() }}
       run: cat /tmp/vscoq_init_log.*
 
@@ -141,8 +141,8 @@ jobs:
 
     - run: cd client && yarn run package && yarn test
       env:
-        VSCOQPATH: ${{ env.vscoqtop }}
-        VSCOQARGS: "-bt"
+        VSROCQPATH: ${{ env.vsrocqtop }}
+        VSROCQARGS: "-bt"
 
   dev-setup-opam:
     strategy:
