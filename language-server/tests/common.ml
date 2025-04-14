@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -12,7 +12,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-[%%import "vscoq_config.mlh"]
+[%%import "vsrocq_config.mlh"]
 
 open Dm
 open Base
@@ -25,7 +25,7 @@ let string_of_message x = x
 let string_of_message = function `String x -> x | _ -> assert false
 [%%endif]
   
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
 let injections =
   Coqinit.init_ocaml ();
   let opts, _ = Coqargs.parse_args

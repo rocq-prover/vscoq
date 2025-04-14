@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -16,9 +16,9 @@ open Printer
 open Pp
 
 let md_code_block s =
-  Format.sprintf "```coq\n%s\n```" s
+  Format.sprintf "```rocq\n%s\n```" s
 
-(* Format a Coq type to be pretty and compact (e.g. replace forall with ∀) *)
+(* Format a Rocq type to be pretty and compact (e.g. replace forall with ∀) *)
 let compactify s =
   let replacements = [
     Str.regexp {|\bfun\b|}, "λ";
@@ -37,9 +37,9 @@ let compactify s =
   in
   List.fold_left (fun s (reg,repl) -> Str.global_replace reg repl s) s replacements
 
-(* TODO this should be exposed by Coq and removed from here *)
+(* TODO this should be exposed by Rocq and removed from here *)
 
-[%%if coq = "8.18"]
+[%%if rocq = "8.18"]
 let pr_s = prlist (fun CAst.{v=s} -> str "%" ++ str s)
 let eq_realarg = List.equal (fun a b -> String.equal a.CAst.v b.CAst.v)
 let nargs_maximal_of_pos ((na,_,_),_,(maximal,_)) = na, maximal
@@ -189,7 +189,7 @@ let rec insert_fake_args volatile bidi impls =
     let f = Option.map pred in
     RealArg hd :: insert_fake_args (f volatile) (f bidi) tl
 
-[%%if coq = "8.18"]
+[%%if rocq = "8.18"]
 let ref_of_const x = Some x
 [%%else]
 let ref_of_const = function
@@ -240,7 +240,7 @@ let canonical_name_info ref =
     | path -> spc() ++ str "(syntactically equal to" ++ spc() ++ Libnames.pr_path path ++ str ")"
     | exception Not_found -> spc() ++ str "(missing canonical, bug?)"
 
-(* End of imported Coq code *)
+(* End of imported Rocq code *)
 
 let pr_globref_kind = let open GlobRef in function
   | ConstRef _ -> "Constant"
@@ -262,7 +262,7 @@ let ref_info env _sigma ref udecl =
   String.concat "\n\n---\n\n" @@ [md_code_block @@ compactify @@ Pp.string_of_ppcmds typ]@args@
   [Format.sprintf "**%s** %s" (pr_globref_kind ref) (Pp.string_of_ppcmds path)]
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20" || coq = "9.0"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20" || rocq = "9.0"]
 let mod_info mp =
   md_code_block @@ Format.sprintf "Module %s" (DirPath.to_string (Nametab.dirpath_of_module mp))
 [%%else]

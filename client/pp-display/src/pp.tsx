@@ -10,7 +10,7 @@ import classes from './Pp.module.css';
 
 type PpProps = {
     pp: PpString;
-    coqCss: CSSModuleClasses;
+    rocqCss: CSSModuleClasses;
     maxDepth: number;
 };
 
@@ -23,7 +23,7 @@ type DisplayState = {
 
 const ppDisplay : FunctionComponent<PpProps> = (props) => {
     
-    const {pp, coqCss, maxDepth} = props;
+    const {pp, rocqCss, maxDepth} = props;
     const [displayState, setDisplayState] = useState<DisplayState>({breakIds: [], display: null, tokenStream: null, context: null});
     const [lastEntry, setLastEntry] = useState<ResizeObserverEntry|null>(null);
     const [hovered, setHovered] = useState<boolean>(false);
@@ -178,7 +178,7 @@ const ppDisplay : FunctionComponent<PpProps> = (props) => {
                 case 'Ppcmd_box':
                     return [boxifyPpString(pp, depth)];
                 case 'Ppcmd_tag':
-                    return [getPpTag(pp[2], coqCss[pp[1].replaceAll(".", "-")], indent, mode, depth)];
+                    return [getPpTag(pp[2], rocqCss[pp[1].replaceAll(".", "-")], indent, mode, depth)];
                 case 'Ppcmd_print_break':
                     const brId = uuid();
                     return [{
@@ -221,7 +221,7 @@ const ppDisplay : FunctionComponent<PpProps> = (props) => {
                 ];
             case 'Ppcmd_tag':
                 return [
-                    getPpTag(pp[2], coqCss[pp[1].replaceAll(".", "-")], indent, mode, depth)
+                    getPpTag(pp[2], rocqCss[pp[1].replaceAll(".", "-")], indent, mode, depth)
                 ];
             case 'Ppcmd_print_break':
                 return [];
@@ -404,7 +404,7 @@ const ppDisplay : FunctionComponent<PpProps> = (props) => {
                     displayState.display ?
                     <PpBox
                         id={displayState.display.id}
-                        coqCss={coqCss}
+                        rocqCss={rocqCss}
                         depth={0}
                         parentHide={HideStates.UNHIDE}
                         hovered={hovered}

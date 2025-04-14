@@ -10,11 +10,11 @@ suite('Should get diagnostics in the appropriate tab', function () {
 
 	test('Skipping proofs', async () => {
 
-		const ext = vscode.extensions.getExtension('maximedenes.vscoq')!;
+		const ext = vscode.extensions.getExtension('rocq-prover.vsrocq')!;
 		await ext.activate();
 
-		vscode.workspace.getConfiguration().update('vscoq.proof.delegation','Skip');
-		vscode.workspace.getConfiguration().update('vscoq.proof.mode',1);
+		vscode.workspace.getConfiguration().update('vsrocq.proof.delegation','Skip');
+		vscode.workspace.getConfiguration().update('vsrocq.proof.mode',1);
 
 		const doc1 = await common.openTextFile('delegate_proof.v');
 

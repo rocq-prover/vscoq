@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -17,17 +17,17 @@ open Protocol.Printing
 open Protocol.LspWrapper
 
 (* Note: this queue is not very useful today, as we process results in the main
-vscoq process, which does not allow for real asynchronous processing of results. *)
+vsrocq process, which does not allow for real asynchronous processing of results. *)
 let query_results_queue = Queue.create ()
 
 let query_feedback : notification Sel.Event.t =
   Sel.On.queue query_results_queue (fun x -> QueryResultNotification x)
 
-[%%if coq = "8.18"]
+[%%if rocq = "8.18"]
 open Vernacexpr
 open Pp
 (* TODO : remove these two functions when interp_search_restriction is 
-  added in the comSearch.mli in Coq (they're simply copied here for now) *)
+  added in the comSearch.mli in Rocq (they're simply copied here for now) *)
 let global_module qid =
     try Nametab.full_name_module qid
     with Not_found ->  
@@ -50,8 +50,8 @@ let interp_search ~id env sigma s r =
     let impargs = select_stronger_impargs impls in
     let impargs = List.map binding_kind_of_status impargs in
     let pc = pr_ltype_env env sigma ~impargs c in
-    let name = pp_of_coqpp pr in
-    let statement = pp_of_coqpp pc in
+    let name = pp_of_rocqpp pr in
+    let statement = pp_of_rocqpp pc in
     Queue.push { id; name; statement } query_results_queue
   in
   let r = interp_search_restriction r in

@@ -2,46 +2,46 @@
   "fileTypes": [
     "v"
   ],
-  "name": "Coq",
+  "name": "Rocq",
   "patterns": [
     {
       "match": "\\b(From|Require|Import|Export|Local|Global|Include)\\b",
       "comment": "Vernacular import keywords",
-      "name": "keyword.control.import.coq"
+      "name": "keyword.control.import.rocq"
     },
     {
       "match": "\\b((Open|Close|Delimit|Undelimit|Bind)\\s+Scope)\\b",
       "comment": "Vernacular scope keywords",
-      "name": "keyword.control.import.coq"
+      "name": "keyword.control.import.rocq"
     },
     {
       "match": "\\b(Theorem|Lemma|Remark|Fact|Corollary|Property|Proposition)\\s+((\\p{L}|[_\\u00A0])(\\p{L}|[0-9_\\u00A0'])*)",
       "comment": "Theorem declarations",
       "captures": {
         "1": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         },
         "2": {
-          "name": "entity.name.function.theorem.coq"
+          "name": "entity.name.function.theorem.rocq"
         }
       }
     },
     {
       "match": "\\bGoal\\b",
-      "name": "keyword.source.coq"
+      "name": "keyword.source.rocq"
     },
     {
       "match": "\\b(Parameters?|Axioms?|Conjectures?|Variables?|Hypothesis|Hypotheses)(\\s+Inline)?\\b\\s*\\(?\\s*((\\p{L}|[_\\u00A0])(\\p{L}|[0-9_\\u00A0'])*)",
       "comment": "Assumptions",
       "captures": {
         "1": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         },
         "2": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         },
         "3": {
-          "name": "entity.name.assumption.coq"
+          "name": "entity.name.assumption.rocq"
         }
       }
     },
@@ -50,10 +50,10 @@
       "comment": "Context",
       "captures": {
         "1": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         },
         "3": {
-          "name": "entity.name.assumption.coq"
+          "name": "entity.name.assumption.rocq"
         }
       }
     },
@@ -62,13 +62,13 @@
       "comment": "Definitions",
       "captures": {
         "1": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         },
         "2": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         },
         "3": {
-          "name": "entity.name.function.coq"
+          "name": "entity.name.function.rocq"
         }
       }
     },
@@ -77,7 +77,7 @@
       "comment": "Obligations",
       "captures": {
         "1": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         }
       }
     },
@@ -86,10 +86,10 @@
       "comment": "Type declarations",
       "captures": {
         "1": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         },
         "3": {
-          "name": "entity.name.type.coq"
+          "name": "entity.name.type.rocq"
         }
       }
     },
@@ -98,7 +98,7 @@
       "comment": "Ltac declarations",
       "captures": {
         "1": {
-          "name": "keyword.source.coq"
+          "name": "keyword.source.rocq"
         },
         "2": {
           "name": "entity.name.function.ltac"
@@ -108,32 +108,32 @@
     {
       "match": "\\b(Hint(\\s+Mode)?|Create\\s+HintDb|Constructors|Resolve|Rewrite|Ltac|Ltac2|Implicit(\\s+Types)?|Set|Unset|Remove\\s+Printing|Arguments|((Tactic|Reserved)\\s+)?Notation|Infix|Section|Module(\\s+Type)?|End|Check|Print(\\s+All)?|Eval|Compute|Search|Universe|Coercions|Generalizable(\\s+(All|Variable))?|Existing(\\s+(Class|Instance))?|Canonical|About|Locate|Collection|Typeclasses\\s+(Opaque|Transparent))\\b",
       "comment": "Vernacular keywords",
-      "name": "keyword.source.coq"
+      "name": "keyword.source.rocq"
     },
     {
       "match": "\\b(Proof|Qed|Defined|Save|Abort(\\s+All)?|Undo(\\s+To)?|Restart|Focus|Unfocus|Unfocused|Show\\s+Proof|Show\\s+Existentials|Show|Unshelve)\\b",
       "comment": "Proof keywords",
-      "name": "keyword.source.coq"
+      "name": "keyword.source.rocq"
     },
     {
       "match": "\\b(Quit|Drop|Time|Redirect|Timeout|Fail)\\b",
       "comment": "Vernacular Debug keywords",
-      "name": "keyword.debug.coq"
+      "name": "keyword.debug.rocq"
     },
     {
       "match": "\\b(admit|Admitted)\\b",
       "comment": "Admits are bad",
-      "name": "invalid.illegal.admit.coq"
+      "name": "invalid.illegal.admit.rocq"
     },
     {
       "match": ":|\\||=|<|>|\\*|\\+|-|\\{|\\}|≠|∨|∧|↔|¬|→|≤|≥",
       "comment": "Operators",
-      "name": "keyword.operator.coq"
+      "name": "keyword.operator.rocq"
     },
     {
       "match": "\\b(forall|exists|Type|Set|Prop|nat|bool|option|list|unit|sum|prod|comparison|Empty_set)\\b|∀|∃",
       "comment": "Type keywords",
-      "name": "support.type.coq"
+      "name": "support.type.rocq"
     },
     {
       "match": "\\b(try|repeat|rew|progress|fresh|solve|now|first|tryif|at|once|do|only)\\b",
@@ -159,7 +159,7 @@
       "applyEndPatternLast": 1,
       "begin": "\\(\\*(?!#)",
       "end": "\\*\\)",
-      "name": "comment.block.coq",
+      "name": "comment.block.rocq",
       "patterns": [
         {
           "include": "#block_comment"
@@ -180,22 +180,22 @@
     },
     {
       "match": "\\b_\\b",
-      "name": "constant.language.wildcard.coq"
+      "name": "constant.language.wildcard.rocq"
     },
     {
       "begin": "\"",
       "beginCaptures": {
         "0": {
-          "name": "punctuation.definition.string.begin.coq"
+          "name": "punctuation.definition.string.begin.rocq"
         }
       },
       "end": "\"",
       "endCaptures": {
         "0": {
-          "name": "punctuation.definition.string.end.coq"
+          "name": "punctuation.definition.string.end.rocq"
         }
       },
-      "name": "string.quoted.double.coq"
+      "name": "string.quoted.double.rocq"
     }
   ],
   "repository": {
@@ -203,7 +203,7 @@
       "applyEndPatternLast": 1,
       "begin": "\\(\\*(?!#)",
       "end": "\\*\\)",
-      "name": "comment.block.coq",
+      "name": "comment.block.rocq",
       "patterns": [
         {
           "include": "#block_comment"
@@ -218,18 +218,18 @@
       "begin": "\"",
       "beginCaptures": {
         "0": {
-          "name": "punctuation.definition.string.begin.coq"
+          "name": "punctuation.definition.string.begin.rocq"
         }
       },
       "end": "\"",
       "endCaptures": {
         "0": {
-          "name": "punctuation.definition.string.end.coq"
+          "name": "punctuation.definition.string.end.rocq"
         }
       },
-      "name": "string.quoted.double.coq"
+      "name": "string.quoted.double.rocq"
     }
   },
-  "scopeName": "source.coq",
+  "scopeName": "source.rocq",
   "uuid": "CDE1AD3A-C094-457D-B321-93009C6BCFDA"
 }

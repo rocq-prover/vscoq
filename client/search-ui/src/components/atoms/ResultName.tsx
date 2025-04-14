@@ -12,7 +12,7 @@ const resultName: FunctionComponent<ResultNameProps> = (props) => {
     
     const {name} = props;
     
-    return <PpDisplay pp={name} coqCss={classes} maxDepth={17}/>;
+    return <PpDisplay pp={name} rocqCss={classes} maxDepth={17}/>;
     
 };
 

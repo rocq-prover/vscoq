@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -13,7 +13,7 @@
 (**************************************************************************)
 module TacticWorkerProcess : sig
   type options
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
    val parse_options : string list -> options * string list
 [%%else]
    val parse_options : Coqargs.t -> string list -> options * string list
