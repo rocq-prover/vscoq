@@ -23,7 +23,7 @@ type link = {
   read_from:  Unix.file_descr;
 }
 
-let write_value { write_to; _ } x =
+let write_value_gen { write_to; _ } x =
 (* alert: calling log from write value causes a loop, since log (from the worker)
     writes the value to a channel. Hence we mask [log] *)
   let [@warning "-26"] log _ = () in
@@ -117,17 +117,21 @@ type worker_message =
   | Job_update of Job.update_request
   | DebugMessage of Log.event
 
+let write_value link (x:worker_message) = write_value_gen link x
+
+let write_value_job link (x:Job.t) = write_value_gen link x
+
 let Log log_worker = Log.mk_log ("worker." ^ Job.name)
 
 let install_feedback_worker ~feedback_cleanup link =
   feedback_cleanup ();
-  ignore(install_feedback (fun (rid,id,fb) -> write_value link (Job.appendFeedback (rid, id) fb)))
+  ignore(install_feedback (fun (rid,id,fb) -> write_value link (Job_update (Job.appendFeedback (rid, id) fb))))
 
 type feedback_cleanup = unit -> unit
 (* This is the lifetime of a delegation, there is one start event, many progress
    evants, then one ending event. *)
 type delegation =
- | WorkerStart : feedback_cleanup * job_handle * 'job * ('job -> send_back:(Job.update_request -> unit) -> unit) * string -> delegation
+ | WorkerStart of feedback_cleanup * job_handle * Job.t * (Job.t -> send_back:(Job.update_request -> unit) -> unit) * string
  | WorkerProgress of { link : link; update_request : worker_message } (* TODO: use a recurring event (+cancel) and remove link *)
  | WorkerEnd of (int * Unix.process_status)
  | WorkerIOError of exn
@@ -175,7 +179,7 @@ let worker_ends pid : delegation Sel.Event.t =
 let worker_progress link : delegation Sel.Event.t =
   Sel.On.ocaml_value link.read_from (function
     | Error e -> WorkerIOError e
-    | Ok update_request -> WorkerProgress { link; update_request; })
+    | Ok (update_request:worker_message) -> WorkerProgress { link; update_request; })
 
 (* ************ spawning *************************************************** *)
 
@@ -258,7 +262,7 @@ let create_process_worker procname cancellation_handle job =
         install_feedback_worker ~feedback_cleanup:(fun _ -> ()) link;
         install_debug_worker link;
         log (fun () -> "sending job");
-        write_value link job;
+        write_value_job link job;
         flush_all ();
         log (fun () -> "sent");
         Ok [worker_progress link; worker_ends pid]
@@ -327,7 +331,7 @@ let setup_plumbing port =
     let link = { read_from; write_to } in
     (* Unix.read_value does not exist, we use Sel *)
     match Sel.(pop Todo.(add empty [Sel.On.ocaml_value read_from (fun x -> x)])) with
-    | Ok (job : Job.t), _ -> (write_value link, job)
+    | Ok (job : Job.t), _ -> ((fun x -> write_value link (Job_update x)), job)
     | Error exn, _ ->
       log_worker (fun () -> "error receiving job: " ^ Printexc.to_string exn);
       exit 1
