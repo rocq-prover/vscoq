@@ -16,15 +16,15 @@ let Dm.Types.Log log = Dm.Log.mk_log "args"
 
 let rec skip_xd acc = function
 | [] -> (), List.rev acc
-| "-vscoq-d" :: _ :: rest -> skip_xd acc rest
+| "-vsrocq-d" :: _ :: rest -> skip_xd acc rest
 | x :: rest -> skip_xd (x::acc) rest
 
-let vscoqtop_specific_usage = {
-  Boot.Usage.executable_name = "vscoqtop";
+let vsrocqtop_specific_usage = {
+  Boot.Usage.executable_name = "vsrocqtop";
   extra_args = "";
   extra_options = {|
-VSCoq options are:
-  -vscoq-d c1,..,cn      enable debugging for vscoq components c1 ... cn.
+VSRocq options are:
+  -vsrocq-d c1,..,cn      enable debugging for vsrocq components c1 ... cn.
                          Known components:
                            all (shorthand for all components)
                            init (all components but only during initialization)
@@ -33,20 +33,20 @@ VSCoq options are:
 |}
 }
 
-let usage () = vscoqtop_specific_usage
+let usage () = vsrocqtop_specific_usage
 
-[%%if  coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if  rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
 
   let parse_extra x =
     skip_xd [] x  
 
   let parse_args_default () =
     let initial_args = Coqargs.default in
-    fst @@ Coqinit.parse_arguments ~usage:vscoqtop_specific_usage ~initial_args ~parse_extra ()
+    fst @@ Coqinit.parse_arguments ~usage:vsrocqtop_specific_usage ~initial_args ~parse_extra ()
 
-  let parse_args_with_coq_project args =
-    let initial_args = fst @@ Coqargs.parse_args ~init:Coqargs.default ~usage:vscoqtop_specific_usage args in
-    fst @@ Coqinit.parse_arguments ~usage:vscoqtop_specific_usage ~initial_args ~parse_extra ()
+  let parse_args_with_rocq_project args =
+    let initial_args = fst @@ Coqargs.parse_args ~init:Coqargs.default ~usage:vsrocqtop_specific_usage args in
+    fst @@ Coqinit.parse_arguments ~usage:vsrocqtop_specific_usage ~initial_args ~parse_extra ()
 
 [%%else]
 
@@ -57,7 +57,7 @@ let parse_extra _ x =
     let initial_args = Coqargs.default in
     fst @@ Coqinit.parse_arguments ~initial_args ~parse_extra (List.tl (Array.to_list Sys.argv))
   
-  let parse_args_with_coq_project args =
+  let parse_args_with_rocq_project args =
     let initial_args = fst @@ Coqargs.parse_args ~init:Coqargs.default args in
     fst @@ Coqinit.parse_arguments ~initial_args ~parse_extra (List.tl (Array.to_list Sys.argv))
 [%%endif]
@@ -71,4 +71,4 @@ let get_local_args dir =
     let project = CoqProject_file.read_project_file ~warning_fn:(fun _ -> ()) f in
     let args = CoqProject_file.coqtop_args_from_project project in
     log (fun () -> Printf.sprintf "Arguments from project file %s: %s" f (String.concat " " args));
-    parse_args_with_coq_project args
+    parse_args_with_rocq_project args

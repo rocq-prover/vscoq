@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -15,7 +15,7 @@ open Protocol.LspWrapper
 
 val query_feedback : notification Sel.Event.t
 
-[%%if coq = "8.18"]
+[%%if rocq = "8.18"]
 val interp_search :
   id:string ->
   Environ.env ->

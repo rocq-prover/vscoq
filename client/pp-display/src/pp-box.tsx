@@ -16,7 +16,7 @@ const ComputeHideState = (self : HideStates, parent : HideStates) => {
 }
 
 interface PpBoxProps extends Box {
-    coqCss: CSSModuleClasses,
+    rocqCss: CSSModuleClasses,
     breaks: BreakInfo[],
     maxDepth: number,
     parentHide: HideStates,
@@ -28,7 +28,7 @@ const ADDED_DEPTH_FACTOR = 10;
 
 const PpBox: FunctionComponent<PpBoxProps> = (props) => {
     
-    const {mode, depth, coqCss, id, breaks, boxChildren, parentHide, hovered, maxDepth, addedDepth} = props;
+    const {mode, depth, rocqCss, id, breaks, boxChildren, parentHide, hovered, maxDepth, addedDepth} = props;
     const [selfHide, setSelfHide] = useState<HideStates>(ComputeHideState(depth >= maxDepth ? HideStates.HIDE : HideStates.UNHIDE, parentHide));
     const [depthOpen, setDepthOpen] = useState<number>(addedDepth);
 
@@ -49,7 +49,7 @@ const PpBox: FunctionComponent<PpBoxProps> = (props) => {
                         parentHide={selfHide}
                         hovered={hovered}
                         maxDepth={maxDepth}
-                        coqCss={coqCss}
+                        rocqCss={rocqCss}
                         id={child.id}
                         classList={child.classList}
                         mode={child.mode}

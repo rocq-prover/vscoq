@@ -4,7 +4,7 @@
 }
 
 .Ellipsis {
-    color: var(--vscode-coq-termReference);
+    color: var(--vscode-rocq-termReference);
     font-style: italic;
     cursor: pointer;
 }

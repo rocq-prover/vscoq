@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRoc                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -96,7 +96,7 @@ module type Worker = sig
   
   (* for worker toplevels *)
   type options
-  [%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+  [%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
   val parse_options : string list -> options * string list
   [%%else]
   val parse_options : Coqargs.t -> string list -> options * string list
@@ -346,7 +346,7 @@ let parse_options extra_args =
     Printf.eprintf "unknown arguments: %s" (String.concat " " extra_args);
     exit 2
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
 let parse_options a = parse_options a
 [%%else]
 let parse_options _ a = parse_options a

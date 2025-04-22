@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -74,7 +74,7 @@ type exec_overview = {
 
 let empty_overview = {processing = []; processed = []; prepared = []}
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
   module Quickfix = struct
     type t = unit
     let from_exception _ = Ok([])

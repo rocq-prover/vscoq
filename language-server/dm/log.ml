@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -19,7 +19,7 @@ let initialization_feedback_queue = Queue.create ()
 
 let init_log =
   try Some (
-    let oc = open_out @@ Filename.temp_file "vscoq_init_log." ".txt" in
+    let oc = open_out @@ Filename.temp_file "vsrocq_init_log." ".txt" in
     output_string oc "command line:\n";
     output_string oc (String.concat " " (Sys.argv |> Array.to_list));
     output_string oc "\nstatic initialization:\n";
@@ -35,8 +35,8 @@ let write_to_init_log str =
 
 let rec is_enabled name = function
   | [] -> false
-  | "-vscoq-d" :: "all" :: _ -> true
-  | "-vscoq-d" :: v :: rest ->
+  | "-vsrocq-d" :: "all" :: _ -> true
+  | "-vsrocq-d" :: v :: rest ->
     List.mem name (String.split_on_char ',' v) || is_enabled name rest
   | _ :: rest -> is_enabled name rest
 
@@ -77,7 +77,7 @@ let logs () = List.sort String.compare !logs
 type event = string
 type events = event Sel.Event.t list
 
-[%% if coq = "8.18" || coq = "8.19"  || coq = "8.20"]
+[%% if rocq = "8.18" || rocq = "8.19"  || rocq = "8.20"]
 let feedback_add_feeder_on_Message f =
   Feedback.add_feeder (fun fb ->
     match fb.Feedback.contents with
@@ -96,13 +96,13 @@ let install_debug_feedback f =
     | Feedback.Debug,None -> f Pp.(string_of_ppcmds m)
     | _ -> ())
 
-(* We go through a queue in case we receive a debug feedback from Coq before we
+(* We go through a queue in case we receive a debug feedback from Rocq before we
    replied to Initialize *)
-let coq_debug_feedback_queue = Queue.create ()
-let main_debug_feeder = install_debug_feedback (fun txt -> Queue.push txt coq_debug_feedback_queue)
+let rocq_debug_feedback_queue = Queue.create ()
+let main_debug_feeder = install_debug_feedback (fun txt -> Queue.push txt rocq_debug_feedback_queue)
    
 let debug : event Sel.Event.t =
-  Sel.On.queue ~name:"debug" ~priority:PriorityManager.feedback coq_debug_feedback_queue (fun x -> x)
+  Sel.On.queue ~name:"debug" ~priority:PriorityManager.feedback rocq_debug_feedback_queue (fun x -> x)
 let cancel_debug_event = Sel.Event.get_cancellation_handle debug
 
 let lsp_initialization_done () =
@@ -119,7 +119,7 @@ let worker_initialization_begins () =
     would output on the worker's stderr.
     Debug feedback from worker is forwarded to master via a specific handler
     (see [worker_initialization_done]) *)
-  Queue.clear coq_debug_feedback_queue
+  Queue.clear rocq_debug_feedback_queue
 
 let worker_initialization_done ~fwd_event =
   let _ = install_debug_feedback fwd_event in

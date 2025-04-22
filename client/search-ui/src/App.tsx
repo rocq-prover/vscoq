@@ -266,7 +266,7 @@ const app = () => {
             return {currentTab: newTabs.length - 1, tabs: newTabs};
         }, () => {
             vscode.postMessage({
-                command: "coqQuery",
+                command: "rocqQuery",
                 text: pattern,
                 id: id,
                 type: type,
@@ -303,7 +303,7 @@ const app = () => {
         });
 
         vscode.postMessage({
-            command: "coqQuery",
+            command: "rocqQuery",
             text: pattern,
             id: id,
             type: type,

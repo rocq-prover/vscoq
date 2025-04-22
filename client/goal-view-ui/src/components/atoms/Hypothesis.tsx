@@ -16,7 +16,7 @@ const hypothesis: FunctionComponent<HypothesisProps> = (props) => {
         <div className={classes.Hypothesis}>
             <PpDisplay 
                 pp={content}
-                coqCss={classes}
+                rocqCss={classes}
                 maxDepth={maxDepth}
             />
         </div>

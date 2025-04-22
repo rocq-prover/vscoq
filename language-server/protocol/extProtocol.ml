@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -64,16 +64,16 @@ module Notification = struct
     let of_jsonrpc (Jsonrpc.Notification.{ method_; params } as notif) =
       let open Lsp.Import.Result.O in
       match method_ with
-      | "vscoq/interpretToPoint" ->
+      | "vsrocq/interpretToPoint" ->
         let+ params = Lsp.Import.Json.message_params params InterpretToPointParams.t_of_yojson in
         InterpretToPoint params
-      | "vscoq/stepBackward" ->
+      | "vsrocq/stepBackward" ->
         let+ params = Lsp.Import.Json.message_params params StepBackwardParams.t_of_yojson in
         StepBackward params
-      | "vscoq/stepForward" ->
+      | "vsrocq/stepForward" ->
         let+ params = Lsp.Import.Json.message_params params StepForwardParams.t_of_yojson in
         StepForward params
-      | "vscoq/interpretToEnd" ->
+      | "vsrocq/interpretToEnd" ->
         let+ params = Lsp.Import.Json.message_params params InterpretToEndParams.t_of_yojson in
         InterpretToEnd params
       | _ ->
@@ -111,7 +111,7 @@ module Notification = struct
 
     end
 
-    module CoqLogMessageParams = struct
+    module RocqLogMessageParams = struct
       
       type t = {
         (* currently we don't have access to the Uri *)
@@ -127,40 +127,40 @@ module Notification = struct
     | MoveCursor of MoveCursorParams.t
     | BlockOnError of BlockOnErrorParams.t
     | ProofView of ProofViewParams.t
-    | CoqLogMessage of CoqLogMessageParams.t
+    | RocqLogMessage of RocqLogMessageParams.t
     | SearchResult of query_result
 
     let to_jsonrpc = function
       | Std notification ->
         Lsp.Server_notification.to_jsonrpc notification
       | UpdateHighlights params ->
-        let method_ = "vscoq/updateHighlights" in
+        let method_ = "vsrocq/updateHighlights" in
         let params = yojson_of_overview params in
         let params = Some (Jsonrpc.Structured.t_of_yojson params) in
         Jsonrpc.Notification.{ method_; params }
       | ProofView params -> 
-        let method_ = "vscoq/proofView" in
+        let method_ = "vsrocq/proofView" in
         let params = ProofViewParams.yojson_of_t params in
         let params = Some (Jsonrpc.Structured.t_of_yojson params) in
         Jsonrpc.Notification.{ method_; params }
       | SearchResult params ->
-        let method_ = "vscoq/searchResult" in
+        let method_ = "vsrocq/searchResult" in
         let params = yojson_of_query_result params in
         let params = Some (Jsonrpc.Structured.t_of_yojson params) in
         Jsonrpc.Notification.{ method_; params }      
       | MoveCursor params ->
-        let method_ = "vscoq/moveCursor" in 
+        let method_ = "vsrocq/moveCursor" in 
         let params = MoveCursorParams.yojson_of_t params in
         let params = Some (Jsonrpc.Structured.t_of_yojson params) in
         Jsonrpc.Notification.{ method_; params }
       | BlockOnError params ->
-        let method_ = "vscoq/blockOnError" in 
+        let method_ = "vsrocq/blockOnError" in 
         let params = BlockOnErrorParams.yojson_of_t params in
         let params = Some (Jsonrpc.Structured.t_of_yojson params) in
         Jsonrpc.Notification.{ method_; params }
-      | CoqLogMessage params ->
-        let method_ = "vscoq/debugMessage" in
-        let params = CoqLogMessageParams.yojson_of_t params in
+      | RocqLogMessage params ->
+        let method_ = "vsrocq/debugMessage" in
+        let params = RocqLogMessageParams.yojson_of_t params in
         let params = Some (Jsonrpc.Structured.t_of_yojson params) in
         Jsonrpc.Notification.{ method_; params }
 
@@ -280,28 +280,28 @@ module Request = struct
   let t_of_jsonrpc (Jsonrpc.Request.{ method_; params } as req) =
     let open Lsp.Import.Result.O in
     match method_ with
-    | "vscoq/resetCoq" ->
+    | "vsrocq/resetRocq" ->
       let+ params = Lsp.Import.Json.message_params params ResetParams.t_of_yojson in
       Pack (Reset params)
-    | "vscoq/search" ->
+    | "vsrocq/search" ->
       let+ params = Lsp.Import.Json.message_params params SearchParams.t_of_yojson in
       Pack (Search params)
-    | "vscoq/about" ->
+    | "vsrocq/about" ->
       let+ params = Lsp.Import.Json.message_params params AboutParams.t_of_yojson in
       Pack (About params)
-    | "vscoq/check" ->
+    | "vsrocq/check" ->
       let+ params = Lsp.Import.Json.message_params params CheckParams.t_of_yojson in
       Pack (Check params)
-    | "vscoq/locate" ->
+    | "vsrocq/locate" ->
       let+ params = Lsp.Import.Json.message_params params LocateParams.t_of_yojson in
       Pack (Locate params)
-    | "vscoq/print" ->
+    | "vsrocq/print" ->
       let+ params = Lsp.Import.Json.message_params params PrintParams.t_of_yojson in
       Pack (Print params)
-    | "vscoq/documentState" ->
+    | "vsrocq/documentState" ->
       let+ params = Lsp.Import.Json.message_params params DocumentStateParams.t_of_yojson in
       Pack (DocumentState params)
-    | "vscoq/documentProofs" ->
+    | "vsrocq/documentProofs" ->
       let+ params = Lsp.Import.Json.message_params params DocumentProofsParams.t_of_yojson in
       Pack (DocumentProofs params)
     | _ ->

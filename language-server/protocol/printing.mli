@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -14,4 +14,4 @@
 
 type pp [@@deriving yojson]
 
-val pp_of_coqpp : Pp.t -> pp
+val pp_of_rocqpp : Pp.t -> pp

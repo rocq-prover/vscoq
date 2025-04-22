@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -13,7 +13,7 @@
 (**************************************************************************)
 
 (** This toplevel implements an LSP-based server language for VsCode,
-    used by the VsCoq extension. *)
+    used by the VsRocq extension. *)
 
 open Printer
 open Lsp.Types
@@ -51,7 +51,7 @@ let Dm.Types.Log log = Dm.Log.mk_log "lspManager"
 let conf_request_id = max_int
 
 let server_info = InitializeResult.create_serverInfo
-  ~name:"vscoq-language-server"
+  ~name:"vsrocq-language-server"
   ~version:"2.2.5"
   ()
 
@@ -138,7 +138,7 @@ let send_configuration_request () =
   let mk_configuration_item section =
     ConfigurationItem.({ scopeUri = None; section = Some section })
   in
-  let items = List.map mk_configuration_item ["vscoq"] in
+  let items = List.map mk_configuration_item ["vsrocq"] in
   let req = Lsp.Server_request.(to_jsonrpc_request (WorkspaceConfiguration { items }) ~id) in
   Send (Request req)
 
@@ -217,8 +217,8 @@ let send_block_on_error uri range =
   let notification = Notification.Server.BlockOnError {uri;range} in 
   output_notification notification
 
-let send_coq_debug message =
-  let notification = Notification.Server.CoqLogMessage {message} in
+let send_rocq_debug message =
+  let notification = Notification.Server.RocqLogMessage {message} in
   output_notification notification
 
 let send_error_notification message =
@@ -256,8 +256,8 @@ let reset_observe_ids =
   in
   Hashtbl.fold reset_doc_observe_id states
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
-(* in these coq versions init_runtime called globally for the process includes init_document
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
+(* in these rocq versions init_runtime called globally for the process includes init_document
    this means in these versions we do not support local _CoqProject except for the effect on injections
    (eg -noinit) *)
 let init_document _ vst = vst
@@ -377,7 +377,7 @@ let progress_hook uri () =
   | None -> log (fun () -> "ignoring non existent document")
   | Some { st } -> update_view uri st
 
-let coqtopInterpretToPoint params =
+let rocqtopInterpretToPoint params =
   let Notification.Client.InterpretToPointParams.{ textDocument; position } = params in
   let uri = textDocument.uri in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
@@ -390,7 +390,7 @@ let coqtopInterpretToPoint params =
     let sel_events = inject_dm_events (uri, events) in
     sel_events
  
-let coqtopStepBackward params =
+let rocqtopStepBackward params =
   let Notification.Client.StepBackwardParams.{ textDocument = { uri } } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
   | None -> log (fun () -> "[stepBackward] ignoring event on non existent document"); []
@@ -399,7 +399,7 @@ let coqtopStepBackward params =
       replace_state (DocumentUri.to_path uri) st visible;
       inject_dm_events (uri,events)
 
-let coqtopStepForward params =
+let rocqtopStepForward params =
   let Notification.Client.StepForwardParams.{ textDocument = { uri } } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
   | None -> log (fun () -> "[stepForward] ignoring event on non existent document"); []
@@ -449,17 +449,17 @@ let documentSymbol id params =
       let symbols = Dm.DocumentManager.get_document_symbols tab.st in
       Ok(Some (`DocumentSymbol symbols)), []
 
-let coqtopResetCoq id params =
+let rocqtopResetRocq id params =
   let Request.Client.ResetParams.{ textDocument = { uri } } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
-  | None -> log (fun () -> "[resetCoq] ignoring event on non existent document"); Error({message="Document does not exist"; code=None}), []
+  | None -> log (fun () -> "[resetRocq] ignoring event on non existent document"); Error({message="Document does not exist"; code=None}), []
   | Some { st; visible } -> 
     let st, events = Dm.DocumentManager.reset st in
     replace_state (DocumentUri.to_path uri) st visible;
     update_view uri st;
     Ok(()), (uri,events) |> inject_dm_events
 
-let coqtopInterpretToEnd params =
+let rocqtopInterpretToEnd params =
   let Notification.Client.InterpretToEndParams.{ textDocument = { uri } } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
   | None -> log (fun () -> "[interpretToEnd] ignoring event on non existent document"); []
@@ -469,32 +469,32 @@ let coqtopInterpretToEnd params =
     update_view uri st;
     inject_dm_events (uri,events)
 
-let coqtopLocate id params = 
+let rocqtopLocate id params = 
   let Request.Client.LocateParams.{ textDocument = { uri }; position; pattern } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
   | None -> log (fun () -> "[locate] ignoring event on non existent document"); Error({message="Document does not exist"; code=None}), []
   | Some { st } ->
     Dm.DocumentManager.locate st position ~pattern, []
 
-let coqtopPrint id params = 
+let rocqtopPrint id params = 
   let Request.Client.PrintParams.{ textDocument = { uri }; position; pattern } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
   | None -> log (fun () -> "[print] ignoring event on non existent document"); Error({message="Document does not exist"; code=None}), []
   | Some { st } -> Dm.DocumentManager.print st position ~pattern, []
 
-let coqtopAbout id params =
+let rocqtopAbout id params =
   let Request.Client.AboutParams.{ textDocument = { uri }; position; pattern } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
   | None -> log (fun () -> "[about] ignoring event on non existent document"); Error({message="Document does not exist"; code=None}), []
   | Some { st } -> Dm.DocumentManager.about st position ~pattern, []
 
-let coqtopCheck id params =
+let rocqtopCheck id params =
   let Request.Client.CheckParams.{ textDocument = { uri }; position; pattern } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
   | None -> log (fun () -> "[check] ignoring event on non existent document"); Error({message="Document does not exist"; code=None}), []
   | Some { st } -> Dm.DocumentManager.check st position ~pattern, []
 
-let coqtopSearch id params =
+let rocqtopSearch id params =
   let Request.Client.SearchParams.{ textDocument = { uri }; id; position; pattern } = params in
   match Hashtbl.find_opt states (DocumentUri.to_path uri) with
   | None -> log (fun () -> "[search] ignoring event on non existent document"); Error({message="Document does not exist"; code=None}), []
@@ -556,12 +556,12 @@ let dispatch_request : type a. Jsonrpc.Id.t -> a Request.Client.t -> (a,error) r
   fun id req ->
   match req with
   | Std req -> dispatch_std_request id req
-  | Reset params -> coqtopResetCoq id params
-  | About params -> coqtopAbout id params
-  | Check params -> coqtopCheck id params
-  | Locate params -> coqtopLocate id params
-  | Print params -> coqtopPrint id params
-  | Search params -> coqtopSearch id params
+  | Reset params -> rocqtopResetRocq id params
+  | About params -> rocqtopAbout id params
+  | Check params -> rocqtopCheck id params
+  | Locate params -> rocqtopLocate id params
+  | Print params -> rocqtopPrint id params
+  | Search params -> rocqtopSearch id params
   | DocumentState params -> sendDocumentState id params
   | DocumentProofs params -> sendDocumentProofs id params
 
@@ -586,10 +586,10 @@ let dispatch_std_notification =
 
 let dispatch_notification =
   let open Notification.Client in function
-  | InterpretToPoint params -> log (fun () -> "Received notification: vscoq/interpretToPoint"); coqtopInterpretToPoint params 
-  | InterpretToEnd params -> log (fun () -> "Received notification: vscoq/interpretToEnd"); coqtopInterpretToEnd params
-  | StepBackward params -> log (fun () -> "Received notification: vscoq/stepBackward"); coqtopStepBackward params
-  | StepForward params -> log (fun () -> "Received notification: vscoq/stepForward"); coqtopStepForward params
+  | InterpretToPoint params -> log (fun () -> "Received notification: vsrocq/interpretToPoint"); rocqtopInterpretToPoint params 
+  | InterpretToEnd params -> log (fun () -> "Received notification: vsrocq/interpretToEnd"); rocqtopInterpretToEnd params
+  | StepBackward params -> log (fun () -> "Received notification: vsrocq/stepBackward"); rocqtopStepBackward params
+  | StepForward params -> log (fun () -> "Received notification: vsrocq/stepForward"); rocqtopStepForward params
   | Std notif -> dispatch_std_notification notif
 
 let handle_lsp_event = function
@@ -666,7 +666,7 @@ let handle_event = function
       output_notification @@ SearchResult params; [inject_notification Dm.SearchQuery.query_feedback]
     end
   | LogEvent e ->
-    send_coq_debug e; [inject_debug_event Dm.Log.debug]
+    send_rocq_debug e; [inject_debug_event Dm.Log.debug]
 
 let pr_event = function
   | LspManagerEvent e -> pr_lsp_event e

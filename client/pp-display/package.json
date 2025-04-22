@@ -7,7 +7,7 @@
   ],
   "main": "./dist/pp-display.es.js",
   "types": "./dist/main.d.ts",
-  "description": "A react library to format and display Coq Pp types.",
+  "description": "A react library to format and display Rocq Pp types.",
   "private": true,
   "scripts": {
     "start": "vite",

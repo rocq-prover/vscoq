@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -20,7 +20,7 @@ open Types
    
    For each job to delegate one has to instantiaet the MakeWorker functor
    passin a Job description. Since on Windows we can't fork, one has to
-   provide a Job.binary_name to invoke. That process must be a Coq toplevel
+   provide a Job.binary_name to invoke. That process must be a Rocq toplevel
    parsing extra argument using [parse_options] then sets up
    a link with master via [setup_plumbing] which provides a function to be
    called to send updates back *)
@@ -79,7 +79,7 @@ module type Worker = sig
    
    (* for worker toplevels *)
    type options
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
    val parse_options : string list -> options * string list
 [%%else]
    val parse_options : Coqargs.t -> string list -> options * string list

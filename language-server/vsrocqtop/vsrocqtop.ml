@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -13,7 +13,7 @@
 (**************************************************************************)
 
 (** This toplevel implements an LSP-based server language for VsCode,
-    used by the VsCoq extension. *)
+    used by the VsRocq extension. *)
 
 let Dm.Types.Log log = Dm.Log.mk_log "top"
 
@@ -37,7 +37,7 @@ let loop () =
     log ~force:true (fun () -> Pp.string_of_ppcmds @@ CErrors.iprint_no_report info);
     log ~force:true (fun () -> "==========================================================")
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
 let _ =
   Coqinit.init_ocaml ();
   log (fun () -> "------------------ begin ---------------");

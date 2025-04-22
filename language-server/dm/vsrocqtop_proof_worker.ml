@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                  *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -13,7 +13,7 @@
 (**************************************************************************)
 
 (** This toplevel implements an LSP-based server language for VsCode,
-    used by the VsCoq extension. *)
+    used by the VsRocq extension. *)
 
 let log = Dm.ExecutionManager.ProofWorkerProcess.log
 
@@ -26,13 +26,13 @@ let main_worker options =
     log (fun () -> bt);
     flush_all ()
 
-let vscoqtop_specific_usage = Boot.Usage.{
-  executable_name = "vscoqtop_proof_worker";
+let vsrocqtop_specific_usage = Boot.Usage.{
+  executable_name = "vsrocqtop_proof_worker";
   extra_args = "";
   extra_options = "";
 }
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq = "8.18" || rocq = "8.19"]
 let start_library top opts = Coqinit.start_library ~top opts
 [%%else]
 let start_library top opts =
@@ -41,10 +41,10 @@ let start_library top opts =
 [%%endif]
 
 
-[%%if coq = "8.18" || coq = "8.19" || coq = "8.20"]
+[%%if rocq = "8.18" || rocq = "8.19" || rocq = "8.20"]
 let _ =
   Coqinit.init_ocaml ();
-  let opts, emoptions = Coqinit.parse_arguments ~parse_extra:Dm.ExecutionManager.ProofWorkerProcess.parse_options ~usage:vscoqtop_specific_usage () in
+  let opts, emoptions = Coqinit.parse_arguments ~parse_extra:Dm.ExecutionManager.ProofWorkerProcess.parse_options ~usage:vsrocqtop_specific_usage () in
   let injections = Coqinit.init_runtime opts in
   start_library Coqargs.(dirpath_of_top opts.config.logic.toplevel_name) injections;
   log (fun () -> "started");
@@ -54,7 +54,7 @@ let _ =
 let () =
   Coqinit.init_ocaml ();
   let opts, emoptions = Coqinit.parse_arguments ~parse_extra:Dm.ExecutionManager.ProofWorkerProcess.parse_options (List.tl (Array.to_list Sys.argv)) in
-  let () = Coqinit.init_runtime ~usage:vscoqtop_specific_usage opts in
+  let () = Coqinit.init_runtime ~usage:vsrocqtop_specific_usage opts in
   (* not sure if init_document is useful in proof worker *)
   let () = Coqinit.init_document opts in
   start_library (Coqinit.dirpath_of_top opts.config.logic.toplevel_name) [];

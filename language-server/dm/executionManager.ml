@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -66,7 +66,7 @@ let fresh_doc_id () = incr doc_id; !doc_id
 
 type document_id = int
 
-type coq_feedback_listener = int
+type rocq_feedback_listener = int
 
 type delegated_task = { 
   terminator_id: sentence_id;
@@ -89,9 +89,9 @@ type state = {
   of_sentence : (sentence_state * feedback_message list) SM.t;
   todo: prepared_task list; (* execution queue *)
 
-  (* ugly stuff to correctly dispatch Coq feedback *)
-  doc_id : document_id; (* unique number used to interface with Coq's Feedback *)
-  coq_feeder : coq_feedback_listener;
+  (* ugly stuff to correctly dispatch Rocq feedback *)
+  doc_id : document_id; (* unique number used to interface with Rocq's Feedback *)
+  rocq_feeder : rocq_feedback_listener;
   sel_feedback_queue : (Feedback.route_id * sentence_id * feedback_message) Queue.t;
   sel_cancellation_handle : Sel.Event.cancellation_handle;
   overview: exec_overview;
@@ -141,7 +141,7 @@ module ProofJob = struct
     terminator_id : sentence_id;
   }
   let name = "proof"
-  let binary_name = "vscoqtop_proof_worker.opt"
+  let binary_name = "vsrocqtop_proof_worker.opt"
   let initial_pool_size = 1
 
 end
@@ -228,14 +228,14 @@ let interp_ast ~doc_id ~state_id ~st ~error_recovery ast =
         st, status, []
 
 (* This adapts the Future API with our event model *)
-[%%if coq = "8.18"]
+[%%if rocq = "8.18"]
 let definition_using e s ~fixnames:_ ~using ~terms =
   Proof_using.definition_using e s ~using ~terms
-[%%elif coq = "8.19"]
+[%%elif rocq = "8.19"]
 let definition_using = Proof_using.definition_using
 [%%endif]
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq = "8.18" || rocq = "8.19"]
 let add_using proof proof_using lemmas =
       let env = Global.env () in
       let sigma, _ = Declare.Proof.get_current_context proof in
@@ -436,7 +436,7 @@ let install_feedback_listener doc_id send =
 let init vernac_state =
   let doc_id = fresh_doc_id () in
   let sel_feedback_queue = Queue.create () in
-  let coq_feeder = install_feedback_listener doc_id (fun x -> Queue.push x sel_feedback_queue) in
+  let rocq_feeder = install_feedback_listener doc_id (fun x -> Queue.push x sel_feedback_queue) in
   let event = local_feedback sel_feedback_queue in
   let sel_cancellation_handle = Sel.Event.get_cancellation_handle event in
   {
@@ -444,7 +444,7 @@ let init vernac_state =
     of_sentence = SM.empty;
     todo = [];
     doc_id;
-    coq_feeder;
+    rocq_feeder;
     sel_feedback_queue;
     sel_cancellation_handle;
     overview = empty_overview;
@@ -453,8 +453,8 @@ let init vernac_state =
 
 (* called by the forked child. Since the Feedback API is imperative, the
    feedback pipes have to be modified in place *)
-let feedback_cleanup { coq_feeder; sel_feedback_queue; sel_cancellation_handle } =
-  Feedback.del_feeder coq_feeder;
+let feedback_cleanup { rocq_feeder; sel_feedback_queue; sel_cancellation_handle } =
+  Feedback.del_feeder rocq_feeder;
   Queue.clear sel_feedback_queue;
   Sel.Event.cancel sel_cancellation_handle
 

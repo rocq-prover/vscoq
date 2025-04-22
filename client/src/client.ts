@@ -10,8 +10,8 @@ import {decorationsManual, decorationsContinuous, decorationsErrorAnimation} fro
 
 export default class Client extends LanguageClient {
 
-	private static _channel: any = vscode.window.createOutputChannel('VsCoq');
-    private static _coqLog: any = vscode.window.createOutputChannel('Coq Log');
+	private static _channel: any = vscode.window.createOutputChannel('VsRocq');
+    private static _rocqLog: any = vscode.window.createOutputChannel('Rocq Log');
     private _decorationsPrepared: Map<String, vscode.Range[]> = new Map<String, vscode.Range[]>();
     private _decorationsProcessed: Map<String, vscode.Range[]> = new Map<String, vscode.Range[]>();
     private _decorationsProcessing: Map<String, vscode.Range[]> = new Map<String, vscode.Range[]>();
@@ -21,21 +21,21 @@ export default class Client extends LanguageClient {
         clientOptions: LanguageClientOptions,
 	) {
         super(
-		    'vscoq-language-server',
-		    'Coq Language Server',
+		    'vsrocq-language-server',
+		    'Rocq Language Server',
 		    serverOptions,
 		    clientOptions
         );
-		Client._channel.appendLine("VsCoq initialised");
+		Client._channel.appendLine("VsRocq initialised");
 	}
 
 
-    public static writeToVscoq2Channel(message: string) {
+    public static writeToVsrocqChannel(message: string) {
         Client._channel.appendLine(message);
     }
 
-    public static writeCoqMessageLog(message: string) {
-        Client._coqLog.appendLine(message);
+    public static writeRocqMessageLog(message: string) {
+        Client._rocqLog.appendLine(message);
     }
 
     public static showLog() {
@@ -105,7 +105,7 @@ export default class Client extends LanguageClient {
     }
 
     private updateDocumentEditors(uri: String, ranges: vscode.Range[], type: String = "processed") {
-        const config = vscode.workspace.getConfiguration('vscoq.proof');
+        const config = vscode.workspace.getConfiguration('vsrocq.proof');
         const editors = this.getDocumentEditors(uri);
         editors.map(editor => {
             if(config.mode === 0) {

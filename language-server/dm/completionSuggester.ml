@@ -1,6 +1,6 @@
 (**************************************************************************)
 (*                                                                        *)
-(*                                 VSCoq                                  *)
+(*                                 VSRocq                                 *)
 (*                                                                        *)
 (*                   Copyright INRIA and contributors                     *)
 (*       (see version control and README file for authors & dates)        *)
@@ -64,7 +64,7 @@ let get_hyps env sigma goal =
 
 let type_kind_opt sigma t = try Some (kind_of_type sigma t) with _ -> None 
 
-[%%if coq = "8.18" || coq = "8.19"]
+[%%if rocq = "8.18" || rocq = "8.19"]
 let type_size sigma t : int =
   let rec aux u =
     match kind sigma u with
@@ -327,7 +327,7 @@ let get_completion_items env proof lemmas options =
     log (fun () -> "Ranking of lemmas failed: " ^ (Printexc.to_string e));
     lemmas
 
-[%%if coq = "8.18"]
+[%%if rocq = "8.18"]
 let generic_search e s f = Search.generic_search e (fun r k e c -> f r k e s c)
 [%%else]
 let generic_search = Search.generic_search
