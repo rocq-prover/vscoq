@@ -65,6 +65,7 @@ type parsing_error = {
   stop: int;
   msg: Pp.t Loc.located;
   qf: Quickfix.t list option;
+  str: string;
 }
 
 type sentence_state =
@@ -404,7 +405,7 @@ let string_of_parsed_ast { tokens } =
   "[" ^ String.concat "--" (List.map (Tok.extract_string false) tokens) ^ "]"
 
 let string_of_parsed_ast = function
-| Error _ -> "errored sentence"
+| Error e -> "[errored sentence]: " ^ (e.str)
 | Parsed ast -> string_of_parsed_ast ast
 
 let patch_sentence parsed scheduler_state_before id ({ parsing_start; ast; start; stop; synterp_state } : pre_sentence) =
@@ -447,9 +448,12 @@ let tok_equal t1 t2 =
   | QUOTATION(s1,t1), QUOTATION(s2,t2) -> CString.equal s1 s2 && CString.equal t1 t2
   | _ -> false
 
+let same_errors (e1 : parsing_error) (e2 : parsing_error) =
+  (String.compare e1.str e2.str = 0) && (e1.start = e2.start) && (e1.stop = e2.stop)
+
 let same_tokens (s1 : sentence) (s2 : pre_sentence) =
   match s1.ast, s2.ast with
-  | Error _, Error _ -> false
+  | Error e1, Error e2 -> same_errors e1 e2
   | Parsed ast1, Parsed ast2 ->
     CList.equal tok_equal ast1.tokens ast2.tokens
   | _, _ -> false
@@ -563,7 +567,8 @@ let get_entry ast =
 let handle_parse_error start parsing_start msg qf ({stream; errors; parsed;} as parse_state) synterp_state =
   log (fun () -> "handling parse error at " ^ string_of_int start);
   let stop = Stream.count stream in
-  let parsing_error = { msg; start; stop; qf} in
+  let str = String.sub (RawDocument.text parse_state.raw) parsing_start (stop - parsing_start) in
+  let parsing_error = { msg; start; stop; qf; str} in
   let sentence = { parsing_start; ast = Error parsing_error; start; stop; synterp_state } in
   let parsed = sentence :: parsed in
   let errors = parsing_error :: errors in
@@ -629,34 +634,45 @@ let handle_parse_more ({loc; synterp_state; stream; raw; parsed; parsed_comments
       handle_parse_error start start (loc, CErrors.iprint_no_report (e,info)) (Some qf) {parse_state with stream} synterp_state
   end
 
+
 let rec unchanged_id id = function
   | [] -> id
   | Equal s :: diffs ->
-    unchanged_id (List.fold_left (fun _ (id,_) -> Some id) id s) diffs
+    let get_id_ignore_error id_option (id, (s: pre_sentence)) =
+      match s.ast with
+        | Error _ -> id_option
+        | Parsed _ ->  Some id
+    in
+    unchanged_id (List.fold_left get_id_ignore_error id s) diffs
   | (Added _ | Deleted _) :: _ -> id
 
 let invalidate top_edit top_id parsed_doc new_sentences =
-  let rec invalidate_diff parsed_doc scheduler_state invalid_ids = function
-    | [] -> invalid_ids, parsed_doc
+  let rec add_new_or_patch parsed_doc scheduler_state = function
+    | [] -> parsed_doc
+    | Deleted _ :: diffs -> add_new_or_patch parsed_doc scheduler_state diffs
     | Equal s :: diffs ->
       let patch_sentence (parsed_doc,scheduler_state) (id,new_s) =
         patch_sentence parsed_doc scheduler_state id new_s
       in
       let parsed_doc, scheduler_state = List.fold_left patch_sentence (parsed_doc, scheduler_state) s in
-      invalidate_diff parsed_doc scheduler_state invalid_ids diffs
-    | Deleted ids :: diffs ->
-      let invalid_ids = List.fold_left (fun ids id -> Stateid.Set.add id ids) invalid_ids ids in
-      let parsed_doc = List.fold_left remove_sentence parsed_doc ids in
-      (* FIXME update scheduler state, maybe invalidate after diff zone *)
-      invalidate_diff parsed_doc scheduler_state invalid_ids diffs
+      add_new_or_patch parsed_doc scheduler_state diffs
     | Added new_sentences :: diffs ->
     (* FIXME could have side effect on the following, unchanged sentences *)
       let add_sentence (parsed_doc,scheduler_state) ({ parsing_start; start; stop; ast; synterp_state } : pre_sentence) =
         add_sentence parsed_doc parsing_start start stop ast synterp_state scheduler_state
       in
       let parsed_doc, scheduler_state = List.fold_left add_sentence (parsed_doc,scheduler_state) new_sentences in
-      invalidate_diff parsed_doc scheduler_state invalid_ids diffs
+      add_new_or_patch parsed_doc scheduler_state diffs
   in
+  let rec remove_old parsed_doc invalid_ids = function
+    | [] -> parsed_doc, invalid_ids
+    | Deleted ids :: diffs ->
+      let invalid_ids = List.fold_left (fun ids id -> Stateid.Set.add id ids) invalid_ids ids in
+      let parsed_doc = List.fold_left remove_sentence parsed_doc ids in
+      (* FIXME update scheduler state, maybe invalidate after diff zone *)
+      remove_old parsed_doc invalid_ids diffs
+    | Equal _ :: diffs
+    | Added _ :: diffs -> remove_old parsed_doc invalid_ids diffs in
   let (_,_synterp_state,scheduler_state) = state_at_pos parsed_doc top_edit in
   let sentence_strings = LM.bindings @@ LM.map (fun s -> string_of_parsed_ast s.ast) parsed_doc.sentences_by_end in
   let sentence_strings = List.map (fun s -> snd s) sentence_strings in
@@ -667,10 +683,11 @@ let invalidate top_edit top_id parsed_doc new_sentences =
   log (fun () -> Format.sprintf "Top edit: %i, Doc: %s, Doc by id: %s" top_edit sentence_string sentence_string_id);
   let old_sentences = sentences_after parsed_doc top_edit in
   let diff = diff old_sentences new_sentences in
+  let parsed_doc, invalid_ids = remove_old parsed_doc Stateid.Set.empty diff in
+  let parsed_doc = add_new_or_patch parsed_doc scheduler_state diff in
   let unchanged_id = unchanged_id top_id diff in
   log (fun () -> "diff:\n" ^ string_of_diff parsed_doc diff);
-  let invalid_ids, doc = invalidate_diff parsed_doc scheduler_state Stateid.Set.empty diff in
-  unchanged_id, invalid_ids, doc
+  unchanged_id, invalid_ids, parsed_doc
 
 (** Validate document when raw text has changed *)
 let validate_document ({ parsed_loc; raw_doc; cancel_handle } as document) =

@@ -62,6 +62,7 @@ let rec regroup_tags_aux acc = function
 and regroup_tags l =
  match regroup_tags_aux [[]] l with [l] -> List.rev l | _ -> failwith "tag not closed"
 
+[%%if coq = "8.18" || coq = "8.19" || coq = "8.20" || coq = "9.0"]
 let rec pp_of_coqpp t = match Pp.repr t with
   | Pp.Ppcmd_empty -> Ppcmd_empty
   | Pp.Ppcmd_string s -> Ppcmd_string s
@@ -73,3 +74,17 @@ let rec pp_of_coqpp t = match Pp.repr t with
   | Pp.Ppcmd_print_break (m,n) -> Ppcmd_print_break (m,n)
   | Pp.Ppcmd_force_newline -> Ppcmd_force_newline
   | Pp.Ppcmd_comment l -> Ppcmd_comment l
+[%%else]
+let rec pp_of_coqpp t = match Pp.repr t with
+  | Pp.Ppcmd_empty -> Ppcmd_empty
+  | Pp.Ppcmd_string s -> Ppcmd_string s
+  | Pp.Ppcmd_sized_string (l, (s: string)) -> Ppcmd_string s (*TODO: Add support for sized strings ???*)
+  | Pp.Ppcmd_glue l -> (* We are working around a Coq hack here *)
+    let l = regroup_tags l in
+    Ppcmd_glue (List.map pp_of_coqpp l)
+  | Pp.Ppcmd_box (bt, pp) -> Ppcmd_box (bt, pp_of_coqpp pp)
+  | Pp.Ppcmd_tag (tag, pp) -> Ppcmd_tag (tag, pp_of_coqpp pp)
+  | Pp.Ppcmd_print_break (m,n) -> Ppcmd_print_break (m,n)
+  | Pp.Ppcmd_force_newline -> Ppcmd_force_newline
+  | Pp.Ppcmd_comment l -> Ppcmd_comment l
+[%%endif]

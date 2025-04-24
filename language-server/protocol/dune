@@ -3,4 +3,4 @@
  (public_name vscoq-language-server.lsp)
  (libraries sexplib yojson coq-core.sysinit lsp)
  (preprocess
-   (staged_pps ppx_import ppx_sexp_conv ppx_yojson_conv)))
+   (staged_pps ppx_import ppx_sexp_conv ppx_yojson_conv ppx_optcomp -- -cookie "ppx_optcomp.env=env ~coq:(Defined \"%{coq:version.major}.%{coq:version.minor}\")")))

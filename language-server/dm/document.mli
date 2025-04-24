@@ -90,6 +90,7 @@ type parsing_error = {
   stop: int; 
   msg: Pp.t Loc.located;
   qf: Quickfix.t list option;
+  str: string;
 }
 
 type parse_state
