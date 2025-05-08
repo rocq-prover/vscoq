@@ -64,7 +64,7 @@ type event =
   | ParseEvent
   | Observe of Types.sentence_id
   | ParseMore of Document.event
-  | SendProofView of Types.sentence_id
+  | SendProofView of (Types.sentence_id option)
   | SendBlockOnError of Types.sentence_id
   | SendMoveCursor of Range.t
 
@@ -85,8 +85,8 @@ let pp_event fmt = function
   | Observe id ->
     Stdlib.Format.fprintf fmt "Observe %d" (Stateid.to_int id)
   | ParseMore _ -> Stdlib.Format.fprintf fmt "ParseMore event"
-  | SendProofView id ->
-    Stdlib.Format.fprintf fmt "SendProofView %d" @@ (Stateid.to_int id)
+  | SendProofView id_opt ->
+    Stdlib.Format.fprintf fmt "SendProofView %s" @@ (Option.cata Stateid.to_string "None" id_opt)
   | SendBlockOnError id ->
     Stdlib.Format.fprintf fmt "SendBlockOnError %d" @@ (Stateid.to_int id)
   | SendMoveCursor range ->
@@ -97,7 +97,9 @@ let inject_em_events events = List.map inject_em_event events
 let inject_doc_event x = Sel.Event.map (fun e -> ParseMore e) x
 let inject_doc_events events = List.map inject_doc_event events
 let mk_proof_view_event id =
-  Sel.now ~priority:PriorityManager.proof_view (SendProofView (id))
+  Sel.now ~priority:PriorityManager.proof_view (SendProofView (Some id))
+let mk_proof_view_event_empty =
+  Sel.now ~priority:PriorityManager.proof_view (SendProofView None)
 let mk_observe_event id =
   Sel.now ~priority:PriorityManager.execution (Observe id)
 let mk_move_cursor_event id = 
@@ -473,7 +475,7 @@ let interpret_to_previous st check_mode =
       | None -> 
         Vernacstate.unfreeze_full_state st.init_vs;
         let range = Range.top () in
-        { st with observe_id=Top }, [mk_move_cursor_event range]
+        { st with observe_id=Top }, [mk_move_cursor_event range; mk_proof_view_event_empty]
       | Some { id } -> 
         let st, events = interpret_to st id check_mode in
         let range = Document.range_of_id st.document id in
@@ -700,10 +702,15 @@ let handle_event ev st ~block check_mode diff_mode =
       else
         {state=(Some st); events=[]; update_view; notification=None}
     end
-  | SendProofView id ->
+  | SendProofView (Some id) ->
     let proof = get_proof st diff_mode (Some id) in
     let messages = get_messages st id in
     let params = Notification.Server.ProofViewParams.{ proof; messages} in
+    let notification = Some (Notification.Server.ProofView params) in
+    let update_view = true in
+    {state=(Some st); events=[]; update_view; notification}
+  | SendProofView None ->
+    let params = Notification.Server.ProofViewParams.{ proof=None; messages=[] } in
     let notification = Some (Notification.Server.ProofView params) in
     let update_view = true in
     {state=(Some st); events=[]; update_view; notification}

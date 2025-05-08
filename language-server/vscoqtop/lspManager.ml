@@ -397,6 +397,7 @@ let coqtopStepBackward params =
   | Some { st; visible } ->
       let (st, events) = Dm.DocumentManager.interpret_to_previous st !check_mode in
       replace_state (DocumentUri.to_path uri) st visible;
+      update_view uri st;
       inject_dm_events (uri,events)
 
 let coqtopStepForward params =
@@ -408,8 +409,7 @@ let coqtopStepForward params =
       replace_state (DocumentUri.to_path uri) st visible;
       update_view uri st;
       inject_dm_events (uri,events) 
-        
-  
+
   let make_CompletionItem i item : CompletionItem.t = 
     let (label, insertText, typ, path) = Dm.CompletionItems.pp_completion_item item in
     CompletionItem.create
