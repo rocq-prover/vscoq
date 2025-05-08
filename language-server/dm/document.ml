@@ -197,17 +197,14 @@ let record_outline document id (ast : Synterp.vernac_control_entry) classif (out
         | Vernacexpr.VernacCoFixpoint _ -> Some DefinitionType
         | _ -> None
     in
-    let name = match names with
-    |[] -> "default"
-    | n :: _ -> Names.Id.to_string n 
-    in
+    let str_names = List.map (fun n -> Names.Id.to_string n) names in
     begin match type_ with
     | None -> outline
     | Some type_ ->
       let range = range_of_id document id in
       let statement = string_of_id document id in
-      let element = {id; type_; name; statement; range; proof=[]} in
-      element :: outline
+      let elements = List.map (fun name -> {id; type_; name; statement; range; proof=[]}) str_names in
+      List.append elements outline
     end
   | VtSideff (names, _) ->
     let vernac_gen_expr = ast.v.expr in
@@ -228,16 +225,13 @@ let record_outline document id (ast : Synterp.vernac_control_entry) classif (out
         | Vernacexpr.VernacCoFixpoint _ -> Some DefinitionType, string_of_id document id
         | _ -> None, ""
     in
-    let name = match names with
-    |[] -> "default"
-    | n :: _ -> Names.Id.to_string n 
-    in
+    let str_names = List.map (fun n -> Names.Id.to_string n) names in
     begin match type_ with
     | None -> outline
     | Some type_ ->
       let range = range_of_id document id in
-      let element = {id; type_; name; statement; range; proof=[]} in
-      element :: outline
+      let element = List.map (fun name -> {id; type_; name; statement; range; proof=[]}) str_names in
+      List.append element outline
     end
   | _ -> outline
 
