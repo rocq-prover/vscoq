@@ -4,7 +4,7 @@
  (modules :standard \ vscoqtop_proof_worker vscoqtop_tactic_worker)
  (preprocess (pps ppx_optcomp -- -cookie "ppx_optcomp.env=env ~coq:(Defined \"%{coq:version.major}.%{coq:version.minor}\")"))
  (preprocessor_deps vscoq_config.mlh)
- (libraries base coq-core.sysinit coq-core.vernac coq-core.parsing lsp sel protocol language))
+ (libraries base host coq-core.sysinit coq-core.vernac coq-core.parsing lsp sel protocol language))
 
 (executable
  (name vscoqtop_proof_worker)
