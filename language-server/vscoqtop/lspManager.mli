@@ -16,6 +16,6 @@ type event
 type events = event Sel.Event.t list
 
 val handle_event : event -> events
-val pr_event : event -> Pp.t
+val pr_event : Format.formatter -> event -> unit
 
 val init : unit -> event Sel.Event.t list

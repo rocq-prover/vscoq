@@ -61,10 +61,10 @@ type event =
       started : float; (* time *)
     }
   | ExecutionManagerEvent of ExecutionManager.event
-  | ParseEvent
+  | ParseBegin
   | Observe of Types.sentence_id
-  | ParseMore of Document.event
   | SendProofView of (Types.sentence_id option)
+  | DocumentEvent of Document.event
   | SendBlockOnError of Types.sentence_id
   | SendMoveCursor of Range.t
 
@@ -80,13 +80,13 @@ let pp_event fmt = function
       let time = Unix.gettimeofday () -. started in 
       Stdlib.Format.fprintf fmt "ExecuteToLoc %d (started %2.3f ago)" (Stateid.to_int id) time
   | ExecutionManagerEvent _ -> Stdlib.Format.fprintf fmt "ExecutionManagerEvent"
-  | ParseEvent ->
-    Stdlib.Format.fprintf fmt "ParseEvent"
+  | ParseBegin ->
+    Stdlib.Format.fprintf fmt "ParseBegin"
   | Observe id ->
     Stdlib.Format.fprintf fmt "Observe %d" (Stateid.to_int id)
-  | ParseMore _ -> Stdlib.Format.fprintf fmt "ParseMore event"
   | SendProofView id_opt ->
     Stdlib.Format.fprintf fmt "SendProofView %s" @@ (Option.cata Stateid.to_string "None" id_opt)
+  | DocumentEvent event -> Stdlib.Format.fprintf fmt "DocumentEvent event: "; Document.pp_event fmt event
   | SendBlockOnError id ->
     Stdlib.Format.fprintf fmt "SendBlockOnError %d" @@ (Stateid.to_int id)
   | SendMoveCursor range ->
@@ -94,7 +94,7 @@ let pp_event fmt = function
 
 let inject_em_event x = Sel.Event.map (fun e -> ExecutionManagerEvent e) x
 let inject_em_events events = List.map inject_em_event events
-let inject_doc_event x = Sel.Event.map (fun e -> ParseMore e) x
+let inject_doc_event x = Sel.Event.map (fun e -> DocumentEvent e) x
 let inject_doc_events events = List.map inject_doc_event events
 let mk_proof_view_event id =
   Sel.now ~priority:PriorityManager.proof_view (SendProofView (Some id))
@@ -561,7 +561,7 @@ let init init_vs ~opts uri ~text =
   let execution_state, feedback = ExecutionManager.init init_vs in
   let state = { uri; opts; init_vs; document; execution_state; observe_id=Top; cancel_handle = None; document_state = Parsing } in
   let priority = Some PriorityManager.launch_parsing in
-  let event = Sel.now ?priority ParseEvent in
+  let event = Sel.now ?priority ParseBegin in
   state, [event] @ [inject_em_event feedback]
 
 let reset { uri; opts; init_vs; document; execution_state; } =
@@ -573,7 +573,7 @@ let reset { uri; opts; init_vs; document; execution_state; } =
   let observe_id = Top in
   let state = { uri; opts; init_vs; document; execution_state; observe_id; cancel_handle = None ; document_state = Parsing } in
   let priority = Some PriorityManager.launch_parsing in
-  let event = Sel.now ?priority ParseEvent in
+  let event = Sel.now ?priority ParseBegin in
   state, [event] @ [inject_em_event feedback]
 
 let apply_text_edits state edits =
@@ -589,7 +589,7 @@ let apply_text_edits state edits =
   in
   let state = List.fold_left apply_edit_and_shift_diagnostics_locs_and_overview state edits in
   let priority = Some PriorityManager.launch_parsing in
-  let sel_event = Sel.now ?priority ParseEvent in
+  let sel_event = Sel.now ?priority ParseBegin in
   state, [sel_event]
 
 let execution_finished st id started =
@@ -679,13 +679,13 @@ let handle_event ev st ~block check_mode diff_mode =
     let update_view = true in
     let st, events = observe st id ~should_block_on_error:block ~background in
     {state=Some st; events; update_view; notification=None}
-  | ParseEvent ->
+  | ParseBegin ->
     let document, events = Document.validate_document st.document in
     let update_view = true in
     let state = Some {st with document} in
     let events = inject_doc_events events in
     {state; events; update_view; notification=None}
-  | ParseMore ev ->
+  | DocumentEvent ev ->
     let document, events, parsing_end_info = Document.handle_event st.document ev in
     begin match parsing_end_info with
     | None ->

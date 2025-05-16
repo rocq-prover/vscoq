@@ -701,7 +701,7 @@ let validate_document ({ parsed_loc; raw_doc; cancel_handle } as document) =
   let priority = Some PriorityManager.parsing in
   let event = Sel.now ?priority (ParseEvent parsed_state) in
   let cancel_handle = Some (Sel.Event.get_cancellation_handle event) in
-  {document with cancel_handle}, [Sel.now ?priority (ParseEvent parsed_state)]
+  {document with cancel_handle}, [event]
 
 let handle_invalidate {parsed; errors; parsed_comments; stop; top_id; started; previous_document} document =
   let end_ = Unix.gettimeofday ()in

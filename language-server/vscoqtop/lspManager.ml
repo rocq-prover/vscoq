@@ -635,11 +635,11 @@ let handle_lsp_event = function
   | Send jsonrpc ->
     output_json (Jsonrpc.Packet.yojson_of_t jsonrpc); []
 
-let pr_lsp_event = function
+let pr_lsp_event fmt = function
   | Receive jsonrpc ->
-    Pp.str "Request"
+    Format.fprintf fmt "Request"
   | Send jsonrpc ->
-    Pp.str "Send"
+    Format.fprintf fmt "Send"
 
 let handle_event = function
   | LspManagerEvent e -> handle_lsp_event e
@@ -668,12 +668,12 @@ let handle_event = function
   | LogEvent e ->
     send_coq_debug e; [inject_debug_event Dm.Log.debug]
 
-let pr_event = function
-  | LspManagerEvent e -> pr_lsp_event e
+let pr_event fmt = function
+  | LspManagerEvent e -> pr_lsp_event fmt e
   | DocumentManagerEvent (uri, e) ->
-    Pp.str @@ Format.asprintf "%a" Dm.DocumentManager.pp_event e
-  | Notification _ -> Pp.str"notif"
-  | LogEvent _ -> Pp.str"debug"
+    Format.fprintf fmt "%a" Dm.DocumentManager.pp_event e
+  | Notification _ -> Format.fprintf fmt "notif"
+  | LogEvent _ -> Format.fprintf fmt "debug"
 
 let init () =
   init_state := Some (Vernacstate.freeze_full_state ());

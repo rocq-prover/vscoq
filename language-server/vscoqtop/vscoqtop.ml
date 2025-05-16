@@ -24,9 +24,15 @@ let loop () =
     flush_all ();
     let ready, todo = Sel.pop todo in
     let nremaining = Sel.Todo.size todo in
-    log (fun () -> "Main loop event ready: " ^ Pp.string_of_ppcmds (LspManager.pr_event ready) ^ " , " ^ string_of_int nremaining ^ " events waiting");
+    log (fun () -> Format.asprintf "Main loop event ready: %a, %d events waiting\n\n" LspManager.pr_event ready nremaining);
+    log (fun () -> "==========================================================");
+    log (fun () -> Format.asprintf "Todo events: %a" (Sel.Todo.pp LspManager.pr_event) todo );
+    log (fun () -> "==========================================================\n\n");
     let new_events = LspManager.handle_event ready in
     let todo = Sel.Todo.add todo new_events in
+    log (fun () -> "==========================================================");
+    log (fun () -> Format.asprintf "New Todo events: %a" (Sel.Todo.pp LspManager.pr_event) todo );
+    log (fun () -> "==========================================================\n\n");
     loop todo
   in
   let todo = Sel.Todo.add Sel.Todo.empty events in
