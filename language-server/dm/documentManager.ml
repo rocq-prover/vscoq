@@ -20,6 +20,7 @@ open Protocol.LspWrapper
 open Protocol.ExtProtocol
 open Protocol.Printing
 open Types
+open Host
 
 let Log log = Log.mk_log "documentManager"
 
@@ -42,7 +43,7 @@ type document_state =
 
 type state = {
   uri : DocumentUri.t;
-  init_vs : Vernacstate.t;
+  init_vs : State.t;
   opts : Coqargs.injection_command list;
   document : Document.document;
   execution_state : ExecutionManager.state;
@@ -54,7 +55,7 @@ type state = {
 type event =
   | Execute of { (* we split the computation to help interruptibility *)
       id : Types.sentence_id; (* sentence of interest *)
-      vst_for_next_todo : Vernacstate.t; (* the state to be used for the next
+      vst_for_next_todo : State.t; (* the state to be used for the next
         todo, it is not necessarily the state of the last sentence, since it
         may have failed and this is a surrogate used for error resiliancy *)
       task : ExecutionManager.prepared_task;
@@ -172,7 +173,7 @@ let mk_diag st (id,(lvl,oloc,qf,msg)) =
         (`String "quickfix-replace",
         qf |> yojson_of_list
         (fun qf ->
-            let s = Pp.string_of_ppcmds @@ Quickfix.pp qf in
+            let s = Hpp.string_of_ppcmds @@ Quickfix.pp qf in
             let loc = Quickfix.loc qf in
             let range = RawDocument.range_of_loc (Document.raw_document st.document) loc in
             QuickFixData.yojson_of_t (QuickFixData.{range; text = s})
@@ -181,7 +182,7 @@ let mk_diag st (id,(lvl,oloc,qf,msg)) =
       Some code
     in
     let lvl = DiagnosticSeverity.of_feedback_level lvl in
-    make_diagnostic st.document (Document.range_of_id st.document id) oloc (Pp.string_of_ppcmds msg) lvl code
+    make_diagnostic st.document (Document.range_of_id st.document id) oloc (Hpp.string_of_ppcmds msg) lvl code
 
 let mk_error_diag st (id,(oloc,msg,qf)) = (* mk_diag st (id,(Feedback.Error,oloc, msg)) *)
   let code = 
@@ -193,7 +194,7 @@ let mk_error_diag st (id,(oloc,msg,qf)) = (* mk_diag st (id,(Feedback.Error,oloc
         (`String "quickfix-replace",
         qf |> yojson_of_list
         (fun qf ->
-            let s = Pp.string_of_ppcmds @@ Quickfix.pp qf in
+            let s = Hpp.string_of_ppcmds @@ Quickfix.pp qf in
             let loc = Quickfix.loc qf in
             let range = RawDocument.range_of_loc (Document.raw_document st.document) loc in
             QuickFixData.yojson_of_t (QuickFixData.{range; text = s})
@@ -202,7 +203,7 @@ let mk_error_diag st (id,(oloc,msg,qf)) = (* mk_diag st (id,(Feedback.Error,oloc
       Some code
   in
   let lvl = DiagnosticSeverity.of_feedback_level Feedback.Error in
-  make_diagnostic st.document (Document.range_of_id st.document id) oloc (Pp.string_of_ppcmds msg) lvl code
+  make_diagnostic st.document (Document.range_of_id st.document id) oloc (Hpp.string_of_ppcmds msg) lvl code
 
 
 let mk_parsing_error_diag st Document.{ msg = (oloc,msg); start; stop; qf } =
@@ -220,7 +221,7 @@ let mk_parsing_error_diag st Document.{ msg = (oloc,msg); start; stop; qf } =
         (`String "quickfix-replace",
          qf |> yojson_of_list
          (fun qf ->
-            let s = Pp.string_of_ppcmds @@ Quickfix.pp qf in
+            let s = Hpp.string_of_ppcmds @@ Quickfix.pp qf in
             let loc = Quickfix.loc qf in
             let range = RawDocument.range_of_loc (Document.raw_document st.document) loc in
             QuickFixData.yojson_of_t (QuickFixData.{range; text = s})
@@ -228,7 +229,7 @@ let mk_parsing_error_diag st Document.{ msg = (oloc,msg); start; stop; qf } =
         in
       Some code
   in
-  make_diagnostic st.document range oloc (Pp.string_of_ppcmds msg) severity code
+  make_diagnostic st.document range oloc (Hpp.string_of_ppcmds msg) severity code
 
 let all_diagnostics st =
   let parse_errors = Document.parse_errors st.document in
@@ -473,7 +474,7 @@ let interpret_to_previous st check_mode =
     | Some { start } ->
       match Document.find_sentence_before st.document start with
       | None -> 
-        Vernacstate.unfreeze_full_state st.init_vs;
+        State.unfreeze_full_state st.init_vs;
         let range = Range.top () in
         { st with observe_id=Top }, [mk_move_cursor_event range; mk_proof_view_event_empty]
       | Some { id } -> 
@@ -551,13 +552,13 @@ let dirpath_of_top = Coqinit.dirpath_of_top
 [%%endif]
 
 let init init_vs ~opts uri ~text =
-  Vernacstate.unfreeze_full_state init_vs;
+  State.unfreeze_full_state init_vs;
   let top = try (dirpath_of_top (TopPhysical (DocumentUri.to_path uri))) with
     e -> raise e
   in
   start_library top opts;
-  let init_vs = Vernacstate.freeze_full_state () in
-  let document = Document.create_document init_vs.Vernacstate.synterp text in
+  let init_vs = State.freeze_full_state () in
+  let document = Document.create_document init_vs.synterp text in
   let execution_state, feedback = ExecutionManager.init init_vs in
   let state = { uri; opts; init_vs; document; execution_state; observe_id=Top; cancel_handle = None; document_state = Parsing } in
   let priority = Some PriorityManager.launch_parsing in
@@ -566,7 +567,7 @@ let init init_vs ~opts uri ~text =
 
 let reset { uri; opts; init_vs; document; execution_state; } =
   let text = RawDocument.text @@ Document.raw_document document in
-  Vernacstate.unfreeze_full_state init_vs;
+  State.unfreeze_full_state init_vs;
   let document = Document.create_document init_vs.synterp text in
   ExecutionManager.destroy execution_state;
   let execution_state, feedback = ExecutionManager.init init_vs in
@@ -760,17 +761,17 @@ let get_completions st pos =
 let parse_entry st pos entry pattern =
   let pa = Pcoq.Parsable.make (Gramlib.Stream.of_string pattern) in
   let st = match Document.find_sentence_before st.document pos with
-  | None -> st.init_vs.Vernacstate.synterp.parsing
-  | Some { synterp_state } -> synterp_state.Vernacstate.Synterp.parsing
+  | None -> st.init_vs.synterp.parsing
+  | Some { synterp_state } -> synterp_state.parsing
   in
-  Vernacstate.Parser.parse st entry pa
+  State.Parser.parse st entry pa
 [%%else]
 let parse_entry st pos entry pattern =
   let pa = parsable_make (Gramlib.Stream.of_string pattern) in
   let st = match Document.find_sentence_before st.document pos with
-  | None -> Vernacstate.(Synterp.parsing st.init_vs.synterp)
-  | Some { synterp_state } -> Vernacstate.Synterp.parsing synterp_state
-  in  
+  | None -> State.(Synterp.parsing st.init_vs.synterp)
+  | Some { synterp_state } -> State.Synterp.parsing synterp_state
+  in
   unfreeze st;
   entry_parse entry pa
 [%%endif]
@@ -792,7 +793,7 @@ let about st pos ~pattern =
       Ok (pp_of_rocqpp @@ Prettyp.print_about env sigma ref_or_by_not udecl)
     with e ->
       let e, info = Exninfo.capture e in
-      let message = Pp.string_of_ppcmds @@ CErrors.iprint (e, info) in
+      let message = Hpp.string_of_ppcmds @@ CErrors.iprint (e, info) in
       Error ({message; code=None})
 
 let search st ~id pos pattern =
@@ -813,7 +814,7 @@ let hover_of_sentence st loc pattern sentence =
       Language.Hover.get_hover_contents env sigma ref_or_by_not
     with e ->
       let e, info = Exninfo.capture e in
-      log (fun () -> "Exception while handling hover: " ^ (Pp.string_of_ppcmds @@ CErrors.iprint (e, info)));
+      log (fun () -> "Exception while handling hover: " ^ (Hpp.string_of_ppcmds @@ CErrors.iprint (e, info)));
       None
 
 let hover st pos =
@@ -893,7 +894,7 @@ let jump_to_definition st pos =
             end
         with e ->
           let e, info = Exninfo.capture e in
-          log (fun () -> Pp.string_of_ppcmds @@ CErrors.iprint (e, info)); None
+          log (fun () -> Hpp.string_of_ppcmds @@ CErrors.iprint (e, info)); None
 
 [%%endif]
 
@@ -908,7 +909,7 @@ let check st pos ~pattern =
       Ok (pp_of_rocqpp @@ Vernacentries.check_may_eval env sigma redexpr rc)
     with e ->
       let e, info = Exninfo.capture e in
-      let message = Pp.string_of_ppcmds @@ CErrors.iprint (e, info) in
+      let message = Hpp.string_of_ppcmds @@ CErrors.iprint (e, info) in
       Error ({message; code=None})
 
 [%%if rocq ="8.18" || rocq ="8.19"]
@@ -951,7 +952,7 @@ let print st pos ~pattern =
 
 let warn_nested_proofs_opt =
   CWarnings.create ~name:"vsrocq-nested-proofs-flag"
-    Pp.(fun () -> str "Flag \"Nested Proofs Allowed\" is ignored by VsRocq.")
+    (fun () -> Hpp.str "Flag \"Nested Proofs Allowed\" is ignored by VsRocq.")
 
 let () =
   Goptions.declare_bool_option

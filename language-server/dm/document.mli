@@ -13,6 +13,7 @@
 (**************************************************************************)
 
 open Types
+open Host
 open Lsp.Types
 
 (** This file defines operations on the content of a document (text, parsing
@@ -65,7 +66,7 @@ val raw_document : document -> RawDocument.t
 
 val outline : document -> outline
 
-val create_document : Vernacstate.Synterp.t -> string -> document
+val create_document : State.Synterp.t -> string -> document
 (** [create_document init_synterp_state text] creates a fresh document with content defined by
     [text] under [init_synterp_state]. *)
 
@@ -88,7 +89,7 @@ type parsed_ast = {
 type parsing_error = {
   start: int; 
   stop: int; 
-  msg: Pp.t Loc.located;
+  msg: Hpp.t HLoc.located;
   qf: Quickfix.t list option;
   str: string;
 }
@@ -118,7 +119,7 @@ type sentence = {
   parsing_start : int;
   start : int;
   stop : int;
-  synterp_state : Vernacstate.Synterp.t; (* synterp state after this sentence's synterp phase *)
+  synterp_state : State.Synterp.t; (* synterp state after this sentence's synterp phase *)
   scheduler_state_before : Scheduler.state;
   scheduler_state_after : Scheduler.state;
   ast : sentence_state;

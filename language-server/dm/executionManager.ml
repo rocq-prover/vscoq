@@ -16,21 +16,22 @@ open Protocol
 open Protocol.LspWrapper
 open Scheduler
 open Types
+open Host
 
 let Log log = Log.mk_log "executionManager"
 
-type feedback_message = Feedback.level * Loc.t option * Quickfix.t list * Pp.t
+type feedback_message = Feedback.level * HLoc.t option * Quickfix.t list * Hpp.t
 
 type execution_status =
-  | Success of Vernacstate.t option
-  | Error of Pp.t Loc.located * Quickfix.t list option * Vernacstate.t option (* State to use for resiliency *)
+  | Success of State.t option
+  | Error of Hpp.t HLoc.located * Quickfix.t list option * State.t option (* State to use for resiliency *)
 
 let success vernac_st = Success (Some vernac_st)
 let error loc qf msg vernac_st = Error ((loc,msg), qf, (Some vernac_st))
 
 type sentence_id = Stateid.t
 
-type errored_sentence = (sentence_id * Loc.t option) option
+type errored_sentence = (sentence_id * HLoc.t option) option
 
 module SM = Map.Make (Stateid)
 
@@ -77,15 +78,15 @@ type delegated_task = {
 }
 
 type prepared_task =
-  | PSkip of { id: sentence_id; error: Pp.t option }
-  | PBlock of { id: sentence_id; error: Pp.t Loc.located }
+  | PSkip of { id: sentence_id; error: Hpp.t option }
+  | PBlock of { id: sentence_id; error: Hpp.t HLoc.located }
   | PExec of executable_sentence
   | PQuery of executable_sentence
   | PDelegate of delegated_task
 
 
 type state = {
-  initial : Vernacstate.t;
+  initial : State.t;
   of_sentence : (sentence_state * feedback_message list) SM.t;
   todo: prepared_task list; (* execution queue *)
 
@@ -131,12 +132,12 @@ let get_options () = !options
 module ProofJob = struct
   type update_request =
     | UpdateExecStatus of sentence_id * execution_status
-    | AppendFeedback of Feedback.route_id * Types.sentence_id * (Feedback.level * Loc.t option * Quickfix.t list * Pp.t)
+    | AppendFeedback of Feedback.route_id * Types.sentence_id * (Feedback.level * HLoc.t option * Quickfix.t list * Hpp.t)
   let appendFeedback (rid,sid) fb = AppendFeedback(rid,sid,fb)
 
   type t = {
     tasks : executable_sentence list;
-    initial_vernac_state : Vernacstate.t;
+    initial_vernac_state : State.t;
     doc_id : int;
     terminator_id : sentence_id;
   }
@@ -154,25 +155,25 @@ type event =
 
 type events = event Sel.Event.t list
 let pr_event = function
-  | LocalFeedback _ -> Pp.str "LocalFeedback"
+  | LocalFeedback _ -> Hpp.str "LocalFeedback"
   | ProofWorkerEvent event -> ProofWorker.pr_event event
 
 let inject_proof_event = Sel.Event.map (fun x -> ProofWorkerEvent x)
 let inject_proof_events st l =
   (st, List.map inject_proof_event l)
 
-let interp_error_recovery strategy st : Vernacstate.t =
+let interp_error_recovery strategy st : State.t =
   match strategy with
   | RSkip -> st
   | RAdmitted ->
     let f = Declare.Proof.save_admitted in
-    let open Vernacstate in (* shadows Declare *)
+    let open State in (* shadows Declare *)
     let { Interp.lemmas; program; _ } = st.interp in
     match lemmas with
     | None -> (* if Lemma failed *)
         st
     | Some lemmas ->
-        let proof = Vernacstate.LemmaStack.get_top lemmas in
+        let proof = State.LemmaStack.get_top lemmas in
         let pm = NeList.head program in
         let result = 
           try Ok(f ~pm ~proof)
@@ -182,10 +183,10 @@ let interp_error_recovery strategy st : Vernacstate.t =
         in
         match result with
         | Ok (pm) ->
-          let lemmas = snd (Vernacstate.LemmaStack.pop lemmas) in
+          let lemmas = snd (State.LemmaStack.pop lemmas) in
           let program = NeList.map_head (fun _ -> pm) program in
-          Vernacstate.Declare.set (lemmas,program) [@ocaml.warning "-3"];
-          let interp = Vernacstate.Interp.freeze_interp_state () in
+          State.Declare.set (lemmas,program) [@ocaml.warning "-3"];
+          let interp = State.Interp.freeze_interp_state () in
           { st with interp }
         | Error (Sys.Break, _ as exn) ->
           Exninfo.iraise exn
@@ -207,7 +208,7 @@ let interp_ast ~doc_id ~state_id ~st ~error_recovery ast =
     | Ok (interp, events) ->
       (*
         log fun () -> "Executed: " ^ Stateid.to_string state_id ^ "  " ^ (Pp.string_of_ppcmds @@ Ppvernac.pr_vernac ast) ^
-          " (" ^ (if Option.is_empty vernac_st.Vernacstate.lemmas then "no proof" else "proof")  ^ ")";
+          " (" ^ (if Option.is_empty vernac_st.State.lemmas then "no proof" else "proof")  ^ ")";
           *)
         let st = { st with interp } in
         st, success st, (*List.map inject_pm_event*) events
@@ -220,7 +221,7 @@ let interp_ast ~doc_id ~state_id ~st ~error_recovery ast =
       (*
         log (fun () -> "Failed to execute: " ^ Stateid.to_string state_id ^ "  " ^ (Pp.string_of_ppcmds @@ Ppvernac.pr_vernac ast));
         *)
-        let loc = Loc.get_loc info in
+        let loc = HLoc.get_loc info in
         let qf = Result.value ~default:[] @@ Quickfix.from_exception e in
         let msg = CErrors.iprint (e, info) in
         let status = error loc (Some qf) msg st in
@@ -241,13 +242,13 @@ let add_using proof proof_using lemmas =
       let sigma, _ = Declare.Proof.get_current_context proof in
       let initial_goals pf = Proofview.initial_goals Proof.((data pf).entry) in
       let terms = List.map (fun (_,_,x) -> x) (initial_goals (Declare.Proof.get proof)) in
-      let names = Vernacstate.LemmaStack.get_all_proof_names lemmas in
+      let names = State.LemmaStack.get_all_proof_names lemmas in
       let using = definition_using env sigma ~fixnames:names ~using:proof_using ~terms in
       let vars = Environ.named_context env in
       Names.Id.Set.iter (fun id ->
           if not (List.exists Util.(Context.Named.Declaration.get_id %> Names.Id.equal id) vars) then
             CErrors.user_err
-              Pp.(str "Unknown variable: " ++ Names.Id.print id ++ str "."))
+              Hpp.(str "Unknown variable: " ++ Names.Id.print id ++ str "."))
         using;
       let _, pstate = Declare.Proof.set_used_variables proof ~using in
       pstate
@@ -256,15 +257,15 @@ let add_using proof proof_using _ =
   Declare.Proof.set_proof_using proof proof_using |> snd
 [%%endif]
 
-let interp_qed_delayed ~proof_using ~state_id ~st =
-  let lemmas = Option.get @@ st.Vernacstate.interp.lemmas in
+let interp_qed_delayed ~proof_using ~state_id ~(st:State.t) =
+  let lemmas = Option.get @@ st.interp.lemmas in
   let f proof =
     let proof = add_using proof proof_using lemmas in
     let fix_exn = None in (* FIXME *)
     let f, assign = Future.create_delegate ~blocking:false ~name:"XX" fix_exn in
     Declare.Proof.close_future_proof ~feedback_id:state_id proof f, assign
   in
-  let proof, assign = Vernacstate.LemmaStack.with_top lemmas ~f in
+  let proof, assign = State.LemmaStack.with_top lemmas ~f in
   let control = [] (* FIXME *) in
   let opaque = Vernacexpr.Opaque in
   let pending = CAst.make @@ Vernacexpr.Proved (opaque, None) in
@@ -464,7 +465,7 @@ let handle_feedback state (_,id, fb) =
     begin match SM.find id state.of_sentence with
     | (s,fl) -> update_all id s (fl @ [fb]) state
     | exception Not_found -> 
-        log (fun () -> "Received feedback on non-existing state id " ^ Stateid.to_string id ^ ": " ^ Pp.string_of_ppcmds msg);
+        log (fun () -> "Received feedback on non-existing state id " ^ Stateid.to_string id ^ ": " ^ Hpp.string_of_ppcmds msg);
         state
     end 
 
@@ -512,7 +513,7 @@ let get_vs_and_exec_error st id =
   match fst @@ SM.find id st.of_sentence with
   | Done (Success (Some vs) as es) -> vs, exec_error_of_execution_status id es
   | Done (Error (_,_,Some vs) as es) -> vs, exec_error_of_execution_status id es
-  | _ -> CErrors.anomaly Pp.(str "get_vs_and_exec_error call should be protected with is_locally_executed")
+  | _ -> CErrors.anomaly (Hpp.str "get_vs_and_exec_error call should be protected with is_locally_executed")
   | exception Not_found -> assert false
 
 let is_locally_executed st id =
@@ -568,7 +569,7 @@ let purge_state = function
 
 (* TODO move to proper place *)
 let worker_execute ~doc_id ~send_back (vs,events) { id; ast; synterp; error_recovery } =
-  let vs = { vs with Vernacstate.synterp } in
+  let vs:State.t = { vs with synterp } in
   log (fun () -> "worker interp " ^ Stateid.to_string id);
   let vs, v, ev = interp_ast ~doc_id ~state_id:id ~st:vs ~error_recovery ast in
   send_back (ProofJob.UpdateExecStatus (id,purge_state v));
@@ -577,18 +578,18 @@ let worker_execute ~doc_id ~send_back (vs,events) { id; ast; synterp; error_reco
 (* The execution of Qed for a non-delegated proof checks the proof is completed.
    When the proof is delegated this step is performed by the worker, which
    sends back an update on the Qed sentence in case the proof is unfinished *)
-let worker_ensure_proof_is_over vs send_back terminator_id =
+let worker_ensure_proof_is_over (vs:State.t) send_back terminator_id =
   let f = Declare.Proof.close_proof in
-  let open Vernacstate in (* shadows Declare *)
+  let open State in (* shadows Declare *)
   let { Interp.lemmas } = vs.interp in
   match lemmas with
   | None -> assert false
   | Some lemmas ->
-      let proof = Vernacstate.LemmaStack.get_top lemmas in
+      let proof = LemmaStack.get_top lemmas in
       try let _ = f ~opaque:Vernacexpr.Opaque ~keep_body_ucst_separate:false proof in ()
       with e ->
         let e, info = Exninfo.capture e in
-        let loc = Loc.get_loc info in
+        let loc = HLoc.get_loc info in
         let qf = Result.value ~default:[] @@ Quickfix.from_exception e in
         let msg = CErrors.iprint (e, info) in
         let status = error loc (Some qf) msg vs in
@@ -603,14 +604,14 @@ let worker_main { ProofJob.tasks; initial_vernac_state = vs; doc_id; terminator_
   with e ->
     let e, info = Exninfo.capture e in
     let message = CErrors.iprint_no_report (e, info) in
-    Feedback.msg_debug @@ Pp.str "======================= worker ===========================";
+    Feedback.msg_debug @@ Hpp.str "======================= worker ===========================";
     Feedback.msg_debug message;
-    Feedback.msg_debug @@ Pp.str "==========================================================";
+    Feedback.msg_debug @@ Hpp.str "==========================================================";
     exit 1
 
 let execute_task st (vs, events, interrupted) task =
   if interrupted then begin
-    let st = update st (id_of_prepared_task task) (Error ((None,Pp.str "interrupted"),None,None)) in
+    let st = update st (id_of_prepared_task task) (Error ((None,Hpp.str "interrupted"),None,None)) in
     let todo = [] in
     ({st with todo}, vs, events, true, None)
   end else
@@ -630,7 +631,7 @@ let execute_task st (vs, events, interrupted) task =
           let st = update st id v in
           (st, vs, events, false, None)
       | PExec { id; ast; synterp; error_recovery } ->
-          let vs = { vs with Vernacstate.synterp } in
+          let vs = { vs with synterp } in
           let vs, st, ev, exec_error =
             if is_locally_executed st id then
               let vs, exec_error = get_vs_and_exec_error st id in
@@ -644,7 +645,7 @@ let execute_task st (vs, events, interrupted) task =
           in
           (st, vs, events @ ev, false, exec_error)
       | PQuery { id; ast; synterp; error_recovery } ->
-          let vs = { vs with Vernacstate.synterp } in
+          let vs = { vs with synterp } in
           let _, v, ev = interp_ast ~doc_id:st.doc_id ~state_id:id ~st:vs ~error_recovery ast in
           let st = update st id v in
           (st, vs, events @ ev, false, None)
@@ -665,12 +666,12 @@ let execute_task st (vs, events, interrupted) task =
                   log (fun () -> "Resolved future");
                   assign (`Val (Declare.Proof.return_proof proof))
                 in
-                Vernacstate.LemmaStack.with_top (Option.get @@ vernac_st.Vernacstate.interp.lemmas) ~f
+                State.LemmaStack.with_top (Option.get @@ vernac_st.interp.lemmas) ~f
               | Error ((loc,err),_,_) ->
                   log (fun () -> "Aborted future");
-                  assign (`Exn (CErrors.UserError err, Option.fold_left Loc.add_loc Exninfo.null loc))
+                  assign (`Exn (CErrors.UserError err, Option.fold_left HLoc.add_loc Exninfo.null loc))
               with exn when CErrors.noncritical exn ->
-                assign (`Exn (CErrors.UserError(Pp.str "error closing proof"), Exninfo.null))
+                assign (`Exn (CErrors.UserError(Hpp.str "error closing proof"), Exninfo.null))
             in
             let st = update st terminator_id (success last_vs) in
             let st = List.fold_left (fun st id ->
@@ -692,7 +693,7 @@ let execute_task st (vs, events, interrupted) task =
             (st, vs,events,false, None)
           end
     with Sys.Break ->
-      let st = update st (id_of_prepared_task task) (Error ((None,Pp.str "interrupted"),None,None)) in
+      let st = update st (id_of_prepared_task task) (Error ((None,Hpp.str "interrupted"),None,None)) in
       (st, vs, events, true, None)
 
 let execute st document (vs, events, interrupted) task block_on_first_error =
@@ -795,9 +796,9 @@ let shift_overview st ~before ~after ~start ~offset =
 
 let shift_diagnostics_locs st ~start ~offset =
   let shift_loc loc =
-    let (loc_start, loc_stop) = Loc.unloc loc in
-    if loc_start >= start then Loc.shift_loc offset offset loc
-    else if loc_stop > start then Loc.shift_loc 0 offset loc
+    let (loc_start, loc_stop) = HLoc.unloc loc in
+    if loc_start >= start then HLoc.shift_loc offset offset loc
+    else if loc_stop > start then HLoc.shift_loc 0 offset loc
     else loc
   in
   let shift_feedback (level, oloc, qf, msg as feedback) =
@@ -865,7 +866,7 @@ let rec invalidate document schedule id st =
   Stateid.Set.fold (invalidate document schedule) deps { st with of_sentence; todo }
 
 let context_of_state st =
-    Vernacstate.Interp.unfreeze_interp_state st;
+    State.Interp.unfreeze_interp_state st;
     begin match st.lemmas with
     | None ->
       let env = Global.env () in
@@ -873,7 +874,7 @@ let context_of_state st =
       sigma, env
     | Some lemmas ->
       let open Declare in
-      let open Vernacstate in
+      let open State in
       lemmas |> LemmaStack.with_top ~f:Proof.get_current_context
     end
 
@@ -886,7 +887,7 @@ let get_context st id =
     Some (context_of_state st)
 
 let get_initial_context st =
-  context_of_state st.initial.Vernacstate.interp
+  context_of_state st.initial.interp
 
 let get_vernac_state st id =
   match find_fulfilled_opt id st.of_sentence with
